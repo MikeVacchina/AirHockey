@@ -1,7 +1,7 @@
 #include "framework_AirHockey.h"
 
 //Singleton class get initialized to NULL
-framework_AirHockey* framework_AirHockey::__framework_labyrinth__ = NULL;
+framework_AirHockey* framework_AirHockey::__framework_AirHockey__ = NULL;
 
 extern void initializeGlut(int argc, char **argv)
 {
@@ -28,9 +28,9 @@ framework_AirHockey::framework_AirHockey()
 framework_AirHockey* framework_AirHockey::instance()
 {
 	//check if object already created
-	if(!__framework_labyrinth__)
-		__framework_labyrinth__ = new framework_AirHockey();
-	return __framework_labyrinth__;
+	if(!__framework_AirHockey__)
+		__framework_AirHockey__ = new framework_AirHockey();
+	return __framework_AirHockey__;
 }
 
 bool framework_AirHockey::initialize(std::string windowName, int windowWidth, int windowHeight)

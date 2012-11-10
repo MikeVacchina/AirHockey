@@ -103,7 +103,7 @@ private:
 	double gravityVar;
 	
 	//singleton instance
-	static framework_AirHockey *__framework_labyrinth__;
+	static framework_AirHockey *__framework_AirHockey__;
 
 	//friend callbacks for glut
 	friend void displayWrapperFunc();
