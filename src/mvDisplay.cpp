@@ -73,8 +73,8 @@ bool mvDisplay::initializeDisplayResources()
 	objectBufferInit(maze1);
 	objectBufferInit(maze2);
 	objectBufferInit(sphere);
-	objectBufferInit(dragon);
-	objectBufferInit(texCube);
+	//objectBufferInit(dragon);
+	//objectBufferInit(texCube);
 
 	//create shaders
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -254,15 +254,6 @@ bool mvDisplay::initializeDisplayResources()
     glDepthFunc(GL_LESS);
 	
     glUniform1i(loc_texSampler, 1);
-
-	texCube.loadMesh("cubeTexture.obj");
-
-	//glm::mat4 texCubeRot = glm::rotate(glm::mat4(1.0f), glm::vec3(1.0,0.0,0.0));
-	glm::mat4 texCubeScale = glm::scale(glm::mat4(1.0f),glm::vec3(0.5,0.5,0.5));
-	glm::mat4 texCubeTrn = glm::translate(glm::mat4(1.0f),glm::vec3(0.0,1.5,-5.0));
-
-	texCubeModel = texCubeTrn * texCubeScale;// * texCubeRot;
-	texCube.model = texCubeModel;
     return true;
 }
 
@@ -280,8 +271,8 @@ void mvDisplay::display()
 		else if(maze==2)
 			displayObject(maze2);
 		displayObject(sphere);
-		displayObject(dragon);
-		displayObject(texCube);
+		//displayObject(dragon);
+		//displayObject(texCube);
 	}
 
     //swap the buffers
@@ -311,8 +302,8 @@ void mvDisplay::playMaze(int mazeID)
 		sphere.acc = glm::vec3(0.0);
 		sphere.vel = glm::vec3(0.0);
 		sphere.pos = maze1.getBegin();
-		dragon.model = dragonModel;
-		texCube.model = texCubeModel;
+		//dragon.model = dragonModel;
+		//texCube.model = texCubeModel;
 	}
 	else if(maze==2)
 	{
@@ -321,8 +312,8 @@ void mvDisplay::playMaze(int mazeID)
 		sphere.acc = glm::vec3(0.0);
 		sphere.vel = glm::vec3(0.0);
 		sphere.pos = maze2.getBegin();
-		dragon.model = dragonModel;
-		texCube.model = texCubeModel;
+		//dragon.model = dragonModel;
+		//texCube.model = texCubeModel;
 	}
 
 	started = true;
@@ -335,8 +326,8 @@ void mvDisplay::setMazeModelMat(glm::mat4 m)
 		maze1.model = m;
 	else if(maze==2)
 		maze2.model = m;
-	dragon.model = m*dragonModel;
-	texCube.model = m*texCubeModel;
+	//dragon.model = m*dragonModel;
+	//texCube.model = m*texCubeModel;
 }
 
 void mvDisplay::setBallModelMat(glm::mat4 m)
