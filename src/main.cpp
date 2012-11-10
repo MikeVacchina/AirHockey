@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "framework_labyrinth.h"
+#include "framework_AirHockey.h"
 
 int main(int argc, char **argv)
 {
@@ -12,8 +12,8 @@ int main(int argc, char **argv)
 	//initialize glut
 	initializeGlut(argc,argv);
 
-	//initialize labyrinth game
-	if(!framework_labyrinth::instance()->initialize("Labyrinth Game", windowWidth, windowHeight))
+	//initialize air hockey game
+	if(!framework_AirHockey::instance()->initialize("Air Hockey Game", windowWidth, windowHeight))
 	{
 		system("PAUSE");
 		return -1;
