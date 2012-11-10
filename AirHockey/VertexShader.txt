@@ -1,0 +1,73 @@
+attribute vec3 v_position;
+attribute vec3 v_color;
+attribute vec3 v_norm;
+attribute vec2 v_uv;
+
+varying vec4 o_color;
+varying vec4 l_color;
+varying vec2 uv;
+
+uniform mat4 ModelView;
+uniform mat4 Projection;
+
+uniform vec4 lightOne, lightTwo;
+uniform vec4 AP, DP, SP;
+uniform float shininess;
+
+void main(void)
+{	
+	vec4 pos = (ModelView * vec4(v_position, 1.0));
+	
+	vec4 lightOne_ds = vec4(0.0,0.0,0.0,0.0);
+	vec4 lightTwo_ds = vec4(0.0,0.0,0.0,0.0);
+	
+	vec4 ambient = AP;
+
+	vec3 N = normalize( (ModelView * vec4(v_norm, 0.0)).xyz );
+	
+	if(lightOne.w != 0.0)
+	{
+		vec3 L = normalize(lightOne.xyz - pos.xyz);
+		vec3 E = normalize(-pos.xyz);
+		vec3 H = normalize(L+E);
+		
+		float Kd = max(dot(L,N),0.0);
+		
+		vec4 diffuse = Kd * DP;
+		
+		float Ks = pow(max(dot(N,H),0.0),shininess);
+		
+		vec4 specular = Ks * SP;
+		
+		if(dot(L,N) < 0.0) 
+			specular = vec4(0.0,0.0,0.0,1.0);
+			
+		lightOne_ds = diffuse + specular;
+	}
+	
+	if(lightTwo.w != 0.0)
+	{
+		vec3 L = normalize(lightTwo.xyz - pos.xyz);
+		vec3 E = normalize(-pos.xyz);
+		vec3 H = normalize(L+E);
+		
+		float Kd = max(dot(L,N),0.0);
+		
+		vec4 diffuse = Kd * DP;
+		
+		float Ks = pow(max(dot(N,H),0.0),shininess);
+		
+		vec4 specular = Ks * SP;
+		
+		if(dot(L,N) < 0.0) 
+			specular = vec4(0.0,0.0,0.0,1.0);
+			
+		lightTwo_ds = diffuse + specular;
+	}
+
+	uv = v_uv;
+	o_color = vec4(v_color,1.0);
+	l_color = (ambient + lightOne_ds + lightTwo_ds);
+	
+	gl_Position = Projection * pos;
+}

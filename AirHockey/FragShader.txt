@@ -1,0 +1,16 @@
+varying vec4 o_color;
+varying vec4 l_color;
+varying vec2 uv;
+
+uniform sampler2D texSampler;
+
+void main(void)
+{
+	vec4 color;
+	if(o_color.x == -1)
+		color = texture2D(texSampler, uv) * l_color;
+	else
+		color = o_color * l_color;
+		
+	gl_FragColor = color;
+}
