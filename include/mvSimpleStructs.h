@@ -4,6 +4,10 @@
 #include <gl/glew.h> // glew must be included before the main gl libs
 #include <gl/glut.h> // doing otherwise causes compiler shouting
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+
 #include "defines.h"
 
 //basic vertex structure for glut
@@ -19,14 +23,17 @@ struct mvVertex
 class mvMouseData
 {
 public:
-	mvMouseData(double _theda=0.0, double _phi=0.0)
+	mvMouseData()
 	{
-		theda = _theda;
-		phi   = _phi;
+		vel = glm::vec3(0.0);
 	}
 
-	double theda;
-	double phi;
+	mvMouseData(glm::vec3 _vel)
+	{
+		vel = _vel;
+	}
+
+	glm::vec3 vel;
 };
 
 //keyboard data to pass things from framework to input and vice versa

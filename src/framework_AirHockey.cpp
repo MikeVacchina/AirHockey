@@ -16,13 +16,6 @@ extern void startGlut()
 framework_AirHockey::framework_AirHockey()
 {
 	//set default values
-	theda = 0.0;
-	phi = 0.0;
-
-	started = false;
-
-	keyRotationRate = 30.0;
-	gravityVar = -9.8;
 }
 
 framework_AirHockey* framework_AirHockey::instance()
@@ -54,8 +47,15 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 	//initialize callbacks
 	initializeCallbacks();
 
-	//create menus
-	createMenus();
+	//load objects for game
+	if(!display.loadObjects())
+		return false;
+	
+	//get references to objects in order to match global defines
+	objs.push_back(display.getPuckReference());
+	objs.push_back(display.getPaddle1Reference());
+	objs.push_back(display.getPaddle2Reference());
+	objs.push_back(display.getTableReference());
 
 	//initialize resources
 	if(!display.initializeDisplayResources())
@@ -79,38 +79,6 @@ void framework_AirHockey::initializeCallbacks()
 	glutMouseFunc(mouseWrapperFunc);
 	glutMotionFunc(motionWrapperFunc);
 	glutIdleFunc(idleWrapperFunc);
-}
-
-void framework_AirHockey::createMenus()
-{
-	//create settings menu
-	settingsMenu = glutCreateMenu(subMenuWrapperFunc);
-	
-	//set settings menu options
-	glutAddMenuEntry("Increase Mouse Sensitivity", INCMOUSE);
-	glutAddMenuEntry("Decrease Mouse Sensitivity", DECMOUSE);
-	glutAddMenuEntry("Increase Key Sensitivity", INCKEY);
-	glutAddMenuEntry("Decrease Key Sensitivity", DECKEY);
-	glutAddMenuEntry("Increase Gravity", INCGRAVITY);
-	glutAddMenuEntry("Decrease Gravity", DECGRAVITY);
-	glutAddMenuEntry("Increase Bounce", INCBOUNCE);
-	glutAddMenuEntry("Decrease Bounce", DECBOUNCE);
-	glutAddMenuEntry("Toggle Light One", TOGLIGHTONE);
-	glutAddMenuEntry("Toggle Light Two", TOGLIGHTTWO);
-	glutAddMenuEntry("Reset to Defaults", RESET);
-
-	//create main menu
-	menu = glutCreateMenu(menuWrapperFunc);
-	
-	//set main menu options
-	glutAddMenuEntry("Play Maze 1", PLAYMAZEONE);
-	glutAddMenuEntry("Play Maze 2", PLAYMAZETWO);
-	glutAddMenuEntry("Restart", RESTART);
-	glutAddSubMenu("Settings", settingsMenu);
-	glutAddMenuEntry("Quit", QUIT);
-
-	//attack main menu to right mouse button
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
 void framework_AirHockey::displayFunc()
@@ -152,7 +120,7 @@ void framework_AirHockey::specialUpFunc(int key, int x, int y)
 void framework_AirHockey::mouseFunc(int button, int state, int x, int y)
 {
 	//pass to input
-	userInput.handleMouseFunc(button, state, x, y, mvMouseData(theda,phi));
+	userInput.handleMouseFunc(button, state, x, y, mvMouseData(objs[PADDLE1]->vel));
 }
 
 void framework_AirHockey::motionFunc(int x, int y)
@@ -161,262 +129,55 @@ void framework_AirHockey::motionFunc(int x, int y)
 	mvMouseData mouseOutput;
 	if(userInput.handleMouseMotionFunc(x, y, mouseOutput))
 	{
-		//set maze orientation 
-			//NOTE: mouse control does not us dt but mouse dpi makes movements small
-		setTheda(mouseOutput.theda);
-		setPhi(mouseOutput.phi);
+		//set values based on mouse movements
+		objs[PADDLE1]->vel = mouseOutput.vel;
 	}
 }
 
 void framework_AirHockey::idleFunc()
 {
-	//if user has not yet started a maze do nothing
-	if(!started)
-		return;
-
-	//update object pos from input
-
-	glm::mat4 rotationTheda;
-	glm::mat4 rotationPhi;
-	glm::mat4 mm;//mazeModel
-
-	glm::vec4 phiAxis(0.0,0.0,1.0,0.0);
+	//update object velocity from input
 	
-	double deltaThedaTime=0.0;
-	double deltaPhiTime=0.0;
+	glm::mat4 modelOffset;
+
+	double xVelocity, zVelocity;
 	
-	//get time of each key down as there effect on maze orientation
-	deltaPhiTime -= userInput.timeKeyDown('a');
-	deltaPhiTime += userInput.timeKeyDown('d');
-	deltaPhiTime -= userInput.timeSpecialDown(GLUT_KEY_LEFT);
-	deltaPhiTime += userInput.timeSpecialDown(GLUT_KEY_RIGHT);
+	//get time of each key down as there effect on paddle1's position
+	xVelocity += userInput.timeSpecialDown(GLUT_KEY_RIGHT);
+	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_LEFT);
 
-	//set phi based on time and key rotation variable
-	setPhi(phi + deltaPhiTime * keyRotationRate);
+	zVelocity -= userInput.timeSpecialDown(GLUT_KEY_DOWN);
+	zVelocity += userInput.timeSpecialDown(GLUT_KEY_UP);
+
+	objs[PADDLE1]->vel = objs[PADDLE1]->vel+glm::vec3(xVelocity, 0.0, zVelocity);
 	
-	//get time of each key down as there effect on maze orientation
-	deltaThedaTime -= userInput.timeKeyDown('s');
-	deltaThedaTime += userInput.timeKeyDown('w');
-	deltaThedaTime -= userInput.timeSpecialDown(GLUT_KEY_DOWN);
-	deltaThedaTime += userInput.timeSpecialDown(GLUT_KEY_UP);
+	//get time of each key down as there effect on paddle2's position
+	xVelocity += userInput.timeKeyDown('d');
+	xVelocity -= userInput.timeKeyDown('a');
+
+	zVelocity -= userInput.timeKeyDown('s');
+	zVelocity += userInput.timeKeyDown('w');
 	
-	//set theda based on time and key rotation variable
-	setTheda(theda + deltaThedaTime * keyRotationRate);
+	objs[PADDLE2]->vel = objs[PADDLE2]->vel+glm::vec3(xVelocity, 0.0, zVelocity);
 	
-	//create theda rotation matrix
-	rotationTheda = glm::rotate(glm::mat4(1.0f), (float)theda, glm::vec3(1.0,0.0,0.0));
-
-	//rotate phi rotation axis
-	phiAxis = rotationTheda*phiAxis;
-
-	//create phi rotation matrix
-	rotationPhi = glm::rotate(glm::mat4(1.0f), (float)phi, glm::vec3(phiAxis.x, phiAxis.y, phiAxis.z));
-
-	//create maze model matrix
-	mm = rotationTheda * rotationPhi;
-
-	//set maze model matrix in display
-	display.setMazeModelMat(mm);
-
-	//create gravity based on maze orientation
-
-	//assume maze is static and world rotates
-	glm::mat4 worldRotation = glm::inverse(mm);
-
-	//default gravity
-	glm::vec4 gravity(0.0,gravityVar,0.0,0.0);
-
-	//get gravity relative to static maze
-	gravity = worldRotation*gravity;
-	
-	//set gravity in physics
-	physics.setGravity(glm::vec3(gravity.x, 0.0, gravity.z));
-
 	//update physics for objects
 	physics.update(stopwatch.resetTime());
-
+	
 	//resolve any possible collisions that might occur
 	collision.resolveCollisions();
-
-	//get ball position
-	glm::mat4 translation = glm::translate(glm::mat4(1.0f),objs[1]->pos);
-
-	//orient ball in maze properly
-	display.setBallModelMat(mm * translation);
+	
+	//set new puck position
+	objs[PUCK]->model = glm::translate(glm::mat4(1.0f),objs[PUCK]->pos);
+	//set new paddle1 position
+	objs[PADDLE1]->model = glm::translate(glm::mat4(1.0f),objs[PADDLE1]->pos);
+	//set new paddle2 position
+	objs[PADDLE2]->model = glm::translate(glm::mat4(1.0f),objs[PADDLE2]->pos);
 
 	//update display
 	display.display();
 
 	//call the glut display callback
     glutPostRedisplay();
-}
-
-void framework_AirHockey::menuFunc(int option)
-{
-	mvMaze *m;
-	mvSphere *b;
-
-	switch(option)
-	{
-	case PLAYMAZEONE:
-		//reset maze orientation
-		setTheda(0.0);
-		setPhi(0.0);
-
-		//clear objects since the maze has changed
-		objs.clear();
-
-		//clear physics reference to the objects as well
-		physics.clearObjs();
-
-		//clear collisions reference to the objects as well
-		collision.clearBall();
-		collision.clearMaze();
-
-		//imform display of maze change
-		display.playMaze(1);
-
-		//get references to objects from display
-		m = display.getMaze();
-		b = display.getSphere();
-		
-		//set objects references in framework
-		objs.push_back(dynamic_cast<mvObject*>(m));
-		objs.push_back(dynamic_cast<mvObject*>(b));
-		
-		//set objects references in physics
-		physics.setObjs(objs);
-		
-		//set objects references in collision
-		collision.setMaze(m);
-		collision.setBall(b);
-
-		//the user has started to play
-		started = true;
-		break;
-	case PLAYMAZETWO:
-		//reset maze orientation
-		setTheda(0.0);
-		setPhi(0.0);
-		
-		//clear objects since the maze has changed
-		objs.clear();
-		
-		//clear physics reference to the objects as well
-		physics.clearObjs();
-		
-		//clear collisions reference to the objects as well
-		collision.clearBall();
-		collision.clearMaze();
-		
-		//imform display of maze change
-		display.playMaze(2);
-		
-		//get references to objects from display
-		m = display.getMaze();
-		b = display.getSphere();
-		
-		//set objects references in framework
-		objs.push_back(dynamic_cast<mvObject*>(m));
-		objs.push_back(dynamic_cast<mvObject*>(b));
-		
-		//set objects references in physics
-		physics.setObjs(objs);
-		
-		//set objects references in collision
-		collision.setMaze(m);
-		collision.setBall(b);
-		
-		//the user has started to play
-		started = true;
-		break;
-	case RESTART:
-		//reset maze orientation
-		setTheda(0.0);
-		setPhi(0.0);
-		
-		//get references to objects from display
-		m = display.getMaze();
-		b = display.getSphere();
-		
-		//reset balls values
-		b->falling = false;
-		b->acc = glm::vec3(0.0);
-		b->vel = glm::vec3(0.0);
-		b->pos = m->getBegin();
-
-		break;
-	case QUIT:
-		//quit
-		exit(0);
-		break;
-	}
-}
-
-void framework_AirHockey::subMenuFunc(int option)
-{
-	switch(option)
-	{
-	case INCMOUSE:
-		userInput.increaseMouseSensitivity();
-		break;
-	case DECMOUSE:
-		userInput.decreaseMouseSensitivity();
-		break;
-	case INCKEY:
-		keyRotationRate *= 2.0;
-		break;
-	case DECKEY:
-		keyRotationRate *= 0.5;
-		break;
-	case INCGRAVITY:
-		gravityVar *= 2.0;
-		break;
-	case DECGRAVITY:
-		gravityVar *= 0.5;
-		break;
-	case INCBOUNCE:
-		collision.bouncyness *= 1.25;
-		break;
-	case DECBOUNCE:
-		collision.bouncyness *= 0.8;
-		break;
-	case TOGLIGHTONE:
-		display.toggleLightOne();
-		break;
-	case TOGLIGHTTWO:
-		display.toggleLightTwo();
-		break;
-	case RESET:	
-		//reset all settings
-		userInput.resetMouseSensitivity();
-		keyRotationRate = 30.0;
-		gravityVar = -9.8;
-		collision.bouncyness = 0.5;
-		break;
-	}
-}
-
-void framework_AirHockey::setTheda(double t)
-{
-	//do not allow orientation to exceed 45 degrees
-	if(t<-45.0)
-		theda = -45.0;
-	else if(t>45.0)
-		theda = 45.0;
-	else
-		theda = t;
-}
-
-void framework_AirHockey::setPhi(double p)
-{
-	//do not allow orientation to exceed 45 degrees
-	if(p<-45.0)
-		phi = -45.0;
-	else if(p>45.0)
-		phi = 45.0;
-	else
-		phi = p;
 }
 
 //glut callback wrapper functions simply call corresponding functions in framework as glut is a c api
@@ -463,14 +224,4 @@ void motionWrapperFunc(int x, int y)
 void idleWrapperFunc()
 {
 	framework_AirHockey::instance()->idleFunc();
-}
-
-void menuWrapperFunc(int option)
-{
-	framework_AirHockey::instance()->menuFunc(option);
-}
-
-void subMenuWrapperFunc(int option)
-{
-	framework_AirHockey::instance()->subMenuFunc(option);
 }

@@ -7,6 +7,10 @@
 #include <gl/glew.h> // glew must be included before the main gl libs
 #include <gl/glut.h> // doing otherwise causes compiler shouting
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+
 #include "mvKey.h"
 
 #include "mvSimpleStructs.h"
@@ -44,7 +48,9 @@ public:
 	void resetMouseSensitivity();
 
 private:
-	double init_x, init_y, init_theda, init_phi;
+	double init_x, init_y;
+	glm::vec3 init_pos;
+
 	_mouseState lMouse;
 	_mouseState rMouse;
 

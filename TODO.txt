@@ -1,4 +1,7 @@
-1	Clear out unneeded code from labyrinth project
-2	Clear out unneeded resources
-3	Get textures to work (add uv to vbo geometry?)
-4	Determine the rest of the TODO to complete AirHockey project
+Get textures to work (add uv to vbo geometry?)
+physics needs to be updated for new project
+collision needs to be updated for new project
+models need to be loaded
+
+objs will need a little modification. The wall coordinates need to be determined.
+puck center in x,z needs to be 0,0 same with paddles

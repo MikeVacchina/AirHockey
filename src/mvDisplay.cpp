@@ -6,20 +6,6 @@ mvDisplay::mvDisplay()
 	//set default values
 	width = 640;
 	height = 480;
-
-	started = false;
-
-	//load maze objects
-	maze1.loadMaze("maze1.mv");
-	maze2.loadMaze("maze2.mv");
-
-	//load sphere object and translate/scale mesh
-	sphere.loadMesh("sphere.obj");
-	sphere.setColor(1.0,1.0,0.0);
-	double r = 0.5/sphere.getMeshRadius();
-	sphere.scale(r);
-	r = sphere.getMeshRadius();
-	sphere.translate(0.0,r,0.0);
 	
 	lightOne = glm::vec4(10.0,0.0,0.0,1.0);
 	lightTwo = glm::vec4(-10.0,5.0,5.0,1.0);
@@ -29,26 +15,6 @@ mvDisplay::mvDisplay()
 	SP = glm::vec4(0.0,0.0,0.0,1.0);
 
 	shininess = 100.0;
-
-	//dragon.assimpLoadMesh("dragon.obj");
-
-	//dragon.setColor(1.0,0.2,0.2);
-	//
-	//glm::mat4 dragonRot = glm::rotate(glm::mat4(1.0f), float(90.0), glm::vec3(1.0,0.0,0.0));
-	//glm::mat4 dragonScale = glm::scale(glm::mat4(1.0f),glm::vec3(0.2,0.2,0.2));
-	//glm::mat4 dragonTrn = glm::translate(glm::mat4(1.0f),glm::vec3(0.0,1.75,5.0));
-
-	//dragonModel = dragonTrn * dragonScale * dragonRot;
-	//dragon.model = dragonModel;
-
-	//texCube.loadMesh("cubeTexture.obj");
-
-	////glm::mat4 texCubeRot = glm::rotate(glm::mat4(1.0f), glm::vec3(1.0,0.0,0.0));
-	//glm::mat4 texCubeScale = glm::scale(glm::mat4(1.0f),glm::vec3(0.5,0.5,0.5));
-	//glm::mat4 texCubeTrn = glm::translate(glm::mat4(1.0f),glm::vec3(0.0,1.5,-5.0));
-
-	//texCubeModel = texCubeTrn * texCubeScale;// * texCubeRot;
-	//texCube.model = texCubeModel;
 }
 
 
@@ -67,14 +33,18 @@ void mvDisplay::initializeDisplay(std::string windowName, int w, int h)
     glutCreateWindow(windowName.c_str());
 }
 
+bool mvDisplay::loadObjects()
+{
+	//TODO load objects
+}
+
 bool mvDisplay::initializeDisplayResources()
 {
 	//initialize objects
-	objectBufferInit(maze1);
-	objectBufferInit(maze2);
-	objectBufferInit(sphere);
-	//objectBufferInit(dragon);
-	//objectBufferInit(texCube);
+	objectBufferInit(puck);
+	objectBufferInit(paddle1);
+	objectBufferInit(paddle2);
+	objectBufferInit(table);
 
 	//create shaders
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -263,17 +233,10 @@ void mvDisplay::display()
     glClearColor(0.0, 0.0, 0.2f, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if(started)
-	{
-		//display objects
-		if(maze==1)
-			displayObject(maze1);
-		else if(maze==2)
-			displayObject(maze2);
-		displayObject(sphere);
-		//displayObject(dragon);
-		//displayObject(texCube);
-	}
+	displayObject(puck);
+	displayObject(paddle1);
+	displayObject(paddle2);
+	displayObject(table);
 
     //swap the buffers
     glutSwapBuffers();
@@ -289,74 +252,27 @@ void mvDisplay::reshape(int newWidth, int newHeight)
     //See the init function for an explaination
     projection = glm::perspective(45.0f, float(width)/float(height), 0.01f, 100.0f);
 }
-
-void mvDisplay::playMaze(int mazeID)
-{
-	//set maze id
-	maze = mazeID;
 	
-	if(maze==1)
-	{
-		//reset ball position and motion
-		sphere.falling = false;
-		sphere.acc = glm::vec3(0.0);
-		sphere.vel = glm::vec3(0.0);
-		sphere.pos = maze1.getBegin();
-		//dragon.model = dragonModel;
-		//texCube.model = texCubeModel;
-	}
-	else if(maze==2)
-	{
-		//reset ball position and motion
-		sphere.falling = false;
-		sphere.acc = glm::vec3(0.0);
-		sphere.vel = glm::vec3(0.0);
-		sphere.pos = maze2.getBegin();
-		//dragon.model = dragonModel;
-		//texCube.model = texCubeModel;
-	}
-
-	started = true;
-}
-
-void mvDisplay::setMazeModelMat(glm::mat4 m)
+mvObject* mvDisplay::getPuckReference()
 {
-	//set the correct maze model matrix
-	if(maze==1)
-		maze1.model = m;
-	else if(maze==2)
-		maze2.model = m;
-	//dragon.model = m*dragonModel;
-	//texCube.model = m*texCubeModel;
+	return &puck;
 }
 
-void mvDisplay::setBallModelMat(glm::mat4 m)
+mvObject* mvDisplay::getPaddle1Reference()
 {
-	//set ball model matrix
-	sphere.model = m;
+	return &paddle1;
 }
 
-mvMaze* mvDisplay::getMaze()
+mvObject* mvDisplay::getPaddle2Reference()
 {
-	if(started)
-		//return the proper maze reference
-		if(maze==1)
-			return &maze1;
-		else if(maze==2)
-			return &maze2;
-	else
-		return NULL;
+	return &paddle2;
 }
 
-mvSphere* mvDisplay::getSphere()
+mvObject* mvDisplay::getTableReference()
 {
-	//return the sphere reference
-	if(started)
-		return &sphere;
-	else
-		return NULL;
+	return &table;
 }
-	
+
 void mvDisplay::toggleLightOne()
 {
 	if(lightOne.w==1.0)

@@ -54,8 +54,6 @@ private:
 
 	void initializeCallbacks();
 
-	void createMenus();
-
 	//framework function callbacks
 	void displayFunc();
 	void reshapeFunc(int newWidth, int newHeight);
@@ -70,8 +68,6 @@ private:
 	void subMenuFunc(int option);
 
 	//variable setters to enforce constraints on variables
-	void setTheda(double t);
-	void setPhi(double p);
 
 	//timer
 	mvTime stopwatch;
@@ -92,15 +88,10 @@ private:
 	int menu;
 	int settingsMenu;
 
-	bool started;
-
 	//keep a reference to objects in framework
 	std::vector<mvObject*> objs;
 	
-	//maze orientation variables
-	double theda, phi;
-	double keyRotationRate;
-	double gravityVar;
+	//user control variables
 	
 	//singleton instance
 	static framework_AirHockey *__framework_AirHockey__;
@@ -115,8 +106,6 @@ private:
 	friend void mouseWrapperFunc(int button, int state, int x, int y);
 	friend void motionWrapperFunc(int x, int y);
 	friend void idleWrapperFunc();
-	friend void menuWrapperFunc(int option);
-	friend void subMenuWrapperFunc(int option);
 };
 
 //callbacks for glut which call framework funcs (wrappers)
@@ -129,7 +118,5 @@ extern void specialUpWrapperFunc(int key, int x, int y);
 extern void mouseWrapperFunc(int button, int state, int x, int y);
 extern void motionWrapperFunc(int x, int y);
 extern void idleWrapperFunc();
-extern void menuWrapperFunc(int option);
-extern void subMenuWrapperFunc(int option);
 
 #endif //FRAMEWORK_AIRHOCKEY

@@ -21,9 +21,9 @@
 #include "mvShader.h"
 #include "mvSimpleStructs.h"
 #include "mvObject.h"
-#include "mvRect.h"
-#include "mvMaze.h"
-#include "mvSphere.h"
+#include "mvPuck.h"
+#include "mvPaddle.h"
+#include "mvTable.h"
 
 class mvDisplay
 {
@@ -34,6 +34,9 @@ public:
 	//initialize size and name of window
 	void initializeDisplay(std::string windowName, int w, int h);
 
+	//load objects needed for the game
+	bool loadObjects();
+
 	//initialize resources to be used for gl and glut
 	bool initializeDisplayResources();
 
@@ -42,21 +45,11 @@ public:
 
 	//reshape window
 	void reshape(int newWidth, int newHeight);
-
-	//set maze to be played
-	void playMaze(int mazeID);
-
-	//set maze model matrix
-	void setMazeModelMat(glm::mat4 m);
-
-	//set ball model matrix
-	void setBallModelMat(glm::mat4 m);
-
-	//return reference to maze
-	mvMaze* getMaze();
 	
-	//return reference to ball
-	mvSphere* getSphere();
+	mvObject *getPuckReference();
+	mvObject *getPaddle1Reference();
+	mvObject *getPaddle2Reference();
+	mvObject *getTableReference();
 	
 	void toggleLightOne();
 	void toggleLightTwo();
@@ -100,22 +93,11 @@ private:
 	glm::vec4 SP;
 	float shininess;
 
-	//flag to know when to display objects
-	bool started;
-
-	//maze id
-	int maze;
-
 	//objects
-	mvMaze maze1;
-	mvMaze maze2;
-	mvSphere sphere;
-
-	mvObject dragon;
-	glm::mat4 dragonModel;
-
-	mvObject texCube;
-	glm::mat4 texCubeModel;
+	mvPuck puck;
+	mvPaddle paddle1;
+	mvPaddle paddle2;
+	mvTable table;
 };
 
 #endif //MVDISPLAY

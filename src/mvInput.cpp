@@ -27,8 +27,7 @@ void mvInput::handleMouseFunc(int button, int state, int x, int y, mvMouseData m
 			//initialize position and theda, phi
 			init_x = x;
 			init_y = y;
-			init_theda = mouseInput.theda;
-			init_phi = mouseInput.phi;
+			init_pos = mouseInput.vel;
 		}
 		else if(state == GLUT_UP)
 		{
@@ -44,8 +43,9 @@ bool mvInput::handleMouseMotionFunc(int x, int y, mvMouseData &mouseOutput)
 	if(lMouse == MOUSE_DOWN)
 	{
 		//if left mouse is down set theda and phi base on motion of mouse from initial position
-		mouseOutput.theda = init_theda + (init_y - y)/mouseSensitivity;
-		mouseOutput.phi = init_phi + (x - init_x)/mouseSensitivity;
+		glm::vec3 offset( (init_x-x)/mouseSensitivity , 0.0, (init_y-y)/mouseSensitivity );
+
+		mouseOutput.vel = init_pos + offset;
 		return true;
 	}
 	return false;
