@@ -83,10 +83,6 @@ private:
 
 	//collision handler
 	mvCollision collision;
-	
-	//menu ids
-	int menu;
-	int settingsMenu;
 
 	//keep a reference to objects in framework
 	std::vector<mvObject*> objs;

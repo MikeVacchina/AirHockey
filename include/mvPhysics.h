@@ -24,9 +24,6 @@ public:
 
 	~mvPhysics();
 
-	//sets the gravity
-	void setGravity(glm::vec3 g);
-
 	//sets all objects
 	void setObjs(std::vector<mvObject*> o);
 
@@ -37,8 +34,6 @@ public:
 	void update(double deltaTime);
 	
 private:
-	glm::vec3 gravity;
-
 	std::vector<mvObject*> objs;
 };
 

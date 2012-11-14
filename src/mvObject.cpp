@@ -12,6 +12,8 @@ mvObject::mvObject()
 	acc = glm::vec3(0.0);
 	vel = glm::vec3(0.0);
 	pos = glm::vec3(0.0);
+
+	mass = 1.0;
 }
 
 mvObject::~mvObject()

@@ -57,6 +57,8 @@ public:
 	glm::vec3 vel;
 	glm::vec3 pos;
 
+	double mass;
+
 	//normal forces acting on the object
 	std::vector<glm::vec3> normalForces;
 

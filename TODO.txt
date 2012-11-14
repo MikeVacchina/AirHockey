@@ -1,7 +1,12 @@
 Get textures to work (add uv to vbo geometry?)
-physics needs to be updated for new project
-collision needs to be updated for new project
-models need to be loaded
+collision class needs to be fixed
+models need to be loaded (mtl files might also need to be loaded) (use Assimp)
+	for puck and paddles the radius needs to be determined or provided
+	for the table the bordering walls need to be determined or provided
+	also for the table the goals need to be determined or provided
+menus 
+	needed to rotate camera (might want to change how controls work with moved camera)
+	announce goals, options, ect.
 
 objs will need a little modification. The wall coordinates need to be determined.
 puck center in x,z needs to be 0,0 same with paddles

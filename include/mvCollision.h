@@ -16,8 +16,9 @@
 #include "defines.h"
 
 #include "mvObject.h"
-#include "mvMaze.h"
-#include "mvSphere.h"
+#include "mvTable.h"
+#include "mvPuck.h"
+#include "mvPaddle.h"
 
 #include "mvMath.h"
 
@@ -28,12 +29,18 @@ public:
 	~mvCollision();
 	
 	//set a reference to objects in collision so they dont have to be passed in every call
-	void setMaze(mvMaze *m);
-	void setBall(mvSphere *b);
+	void setTable(mvTable *t);
+	void setPuck(mvPuck *p);
+	void setPaddle1(mvPaddle *p);
+	void setPaddle2(mvPaddle *p);
 
 	//clear references to objects
-	void clearMaze();
-	void clearBall();
+	void clearTable();
+	void clearPuck();
+	void clearPaddle1();
+	void clearPaddle2();
+
+	void clearObjs();
 
 	//detect and resolve all collisions
 	int resolveCollisions();
@@ -42,14 +49,14 @@ public:
 	float bouncyness;
 
 private:
-	mvMaze *maze;
-	mvSphere *ball;
+	mvTable *table;
+	mvPuck *puck;
+	mvPaddle *paddle1;
+	mvPaddle *paddle2;
 
 	std::vector<mvWall> xWalls;
 	std::vector<mvWall> zWalls;
-	std::vector<mvHole> holes;
-	glm::vec3 goal;
-	double radius;
+	//TODO: need some structure for the goals
 };
 
 #endif //MVCOLLISION

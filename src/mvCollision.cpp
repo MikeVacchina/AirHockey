@@ -4,10 +4,11 @@
 mvCollision::mvCollision()
 {
 	//set default values
-	maze = NULL;
-	ball = NULL;
+	table = NULL;
+	puck = NULL;
+	paddle1 = NULL;
+	paddle2 = NULL;
 
-	radius = 0.0;
 	bouncyness = 0.5;
 }
 
@@ -16,49 +17,70 @@ mvCollision::~mvCollision()
 {
 }
 
-void mvCollision::setMaze(mvMaze *m)
+void mvCollision::setTable(mvTable *t)
 {
 	//set maze reference
-	maze = m;
+	table = t;
 	//get objects in maze
-	xWalls = maze->getXWalls();
-	zWalls = maze->getZWalls();
-	holes = maze->getHoles();
-	goal = maze->getGoal();
+	xWalls = table->getXWalls();
+	zWalls = table->getZWalls();
+	//TODO need to get structure for goals
+	//NOTE goals should probably be labeled 1 and 2
+}
+void mvCollision::setPuck(mvPuck *p)
+{
+	puck = p;
 }
 
-void mvCollision::setBall(mvSphere *b)
+void mvCollision::setPaddle1(mvPaddle *p)
 {
-	//set ball reference
-	ball = b;
-	//get ball's radius
-	radius = ball->getMeshRadius();
+	paddle1 = p;
 }
 
-void mvCollision::clearMaze()
+void mvCollision::setPaddle2(mvPaddle *p)
 {
-	//clear maze reference
-	maze = NULL;
+	paddle2 = p;
+}
+
+void mvCollision::clearTable()
+{
+	//clear table reference
+	table = NULL;
 	//clear objects in maze
 	xWalls.clear();
 	zWalls.clear();
-	holes.clear();
-	goal = glm::vec3(0.0);
+	//TODO clear goal structures
 }
 
-void mvCollision::clearBall()
+void mvCollision::clearPuck()
 {
-	//clear ball reference
-	ball = NULL;
-	//return radius to default
-	radius = 0.0;
+	puck = NULL;
+}
 
+void mvCollision::clearPaddle1()
+{
+	paddle1 = NULL;
+}
+
+void mvCollision::clearPaddle2()
+{
+	paddle2 = NULL;
+}
+
+void mvCollision::clearObjs()
+{
+	clearTable();
+	clearPuck();
+	clearPaddle1();
+	clearPaddle2();
 }
 
 //TODO: currently function is ugly 
 //needs to be broken down into parts
 //collision detection with the multiple objects
 //followed by collision response
+
+//TODO: fix collisions for new objects
 int mvCollision::resolveCollisions()
 {
 	//if ball or maze refernces not set return invalid
