@@ -74,6 +74,7 @@ void mvCollision::clearObjs()
 	clearPaddle1();
 	clearPaddle2();
 }
+//showing how to use git
 
 //TODO: currently function is ugly 
 //needs to be broken down into parts
