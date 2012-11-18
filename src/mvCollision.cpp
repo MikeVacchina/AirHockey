@@ -102,6 +102,7 @@ int mvCollision::resolveCollisions()
 
 	//TODO
 	//check if in goal
+	//return GOAL1 or GOAL2 if in one of the goals
 
 	//check collision with paddles
 	double paddlePuckDist = sqrt((puck->pos.x-paddle1->pos.x)*(puck->pos.x-paddle1->pos.x) + (puck->pos.z-paddle1->pos.z)*(puck->pos.z-paddle1->pos.z));
@@ -109,8 +110,6 @@ int mvCollision::resolveCollisions()
 	if(paddlePuckDist <= puck->radius + paddle1->radius)
 	{
 		//puck collided with paddle
-
-		//bounce the puck off the wall using the norm to find correct direction
 		
 		glm::vec3 combinedVel = puck->vel - paddle1->vel;
 		glm::vec3 norm = puck->pos - paddle1->pos;
@@ -129,6 +128,41 @@ int mvCollision::resolveCollisions()
 		double nV_Puck, oV_Puck;
 		
 		nV_Paddle = glm::dot(paddle1->vel,norm);
+		nV_Puck = glm::dot(puck->vel,norm);
+
+		oV_Puck = glm::dot(puck->vel,orth);
+
+		if(nV_Paddle < 0)
+			nV_Paddle = 0;
+		
+		nV_Puck = abs(nV_Puck) + nV_Paddle;
+
+		puck->vel = orth*glm::vec3(oV_Puck) + norm*glm::vec3(nV_Puck);
+	}
+
+	paddlePuckDist = sqrt((puck->pos.x-paddle2->pos.x)*(puck->pos.x-paddle2->pos.x) + (puck->pos.z-paddle2->pos.z)*(puck->pos.z-paddle2->pos.z));
+
+	if(paddlePuckDist <= puck->radius + paddle1->radius)
+	{
+		//puck collided with paddle
+		
+		glm::vec3 combinedVel = puck->vel - paddle2->vel;
+		glm::vec3 norm = puck->pos - paddle2->pos;
+		glm::vec3 orth = glm::vec3(-norm.z,0.0,-norm.x);
+
+		double d = paddlePuckDist - puck->radius - paddle2->radius;
+
+		d /= -2.0;
+		
+		norm = glm::normalize(norm);
+		orth = glm::normalize(orth);
+
+		puck->pos = puck->pos + norm*glm::vec3(d);
+		
+		double nV_Paddle;
+		double nV_Puck, oV_Puck;
+		
+		nV_Paddle = glm::dot(paddle2->vel,norm);
 		nV_Puck = glm::dot(puck->vel,norm);
 
 		oV_Puck = glm::dot(puck->vel,orth);
