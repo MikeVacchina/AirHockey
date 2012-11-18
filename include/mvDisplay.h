@@ -46,10 +46,10 @@ public:
 	//reshape window
 	void reshape(int newWidth, int newHeight);
 	
-	mvObject *getPuckReference();
-	mvObject *getPaddle1Reference();
-	mvObject *getPaddle2Reference();
-	mvObject *getTableReference();
+	mvPuck *getPuckReference();
+	mvPaddle *getPaddle1Reference();
+	mvPaddle *getPaddle2Reference();
+	mvTable *getTableReference();
 	
 	void toggleLightOne();
 	void toggleLightTwo();

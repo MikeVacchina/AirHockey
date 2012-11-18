@@ -36,6 +36,21 @@ void mvDisplay::initializeDisplay(std::string windowName, int w, int h)
 bool mvDisplay::loadObjects()
 {
 	//TODO load objects
+	
+	puck.assimpLoadMesh("Puck.obj");
+	puck.setColor(1,0,0);
+	table.assimpLoadMesh("AirHockeyTable.obj");
+	table.setColor(1,1,0);
+	paddle1.assimpLoadMesh("Paddle1.obj");
+	paddle1.setColor(0,1,0);
+	paddle1.fixMesh(PADDLE1);
+	paddle1.pos = glm::vec3(0.0,0.0,-3.8);
+	paddle2.assimpLoadMesh("Paddle2.obj");
+	paddle2.setColor(0,0,1);
+	paddle2.fixMesh(PADDLE2);
+	paddle2.pos = glm::vec3(0.0,0.0,3.8);
+
+	return true;
 }
 
 bool mvDisplay::initializeDisplayResources()
@@ -210,7 +225,7 @@ bool mvDisplay::initializeDisplayResources()
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 20.0, -10.0), //Eye Position - old eye position: glm::vec3(0.0, 8.0, -16.0)
+    view = glm::lookAt( glm::vec3(0.0, 20.0, -15.0), //Eye Position - old eye position: glm::vec3(0.0, 8.0, -16.0)
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -253,22 +268,22 @@ void mvDisplay::reshape(int newWidth, int newHeight)
     projection = glm::perspective(45.0f, float(width)/float(height), 0.01f, 100.0f);
 }
 	
-mvObject* mvDisplay::getPuckReference()
+mvPuck* mvDisplay::getPuckReference()
 {
 	return &puck;
 }
 
-mvObject* mvDisplay::getPaddle1Reference()
+mvPaddle* mvDisplay::getPaddle1Reference()
 {
 	return &paddle1;
 }
 
-mvObject* mvDisplay::getPaddle2Reference()
+mvPaddle* mvDisplay::getPaddle2Reference()
 {
 	return &paddle2;
 }
 
-mvObject* mvDisplay::getTableReference()
+mvTable* mvDisplay::getTableReference()
 {
 	return &table;
 }

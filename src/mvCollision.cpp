@@ -21,11 +21,12 @@ void mvCollision::setTable(mvTable *t)
 {
 	//set maze reference
 	table = t;
-	//get objects in maze
+	//get walls on table
 	xWalls = table->getXWalls();
 	zWalls = table->getZWalls();
-	//TODO need to get structure for goals
-	//NOTE goals should probably be labeled 1 and 2
+	//get goals on table
+	xGoals = table->getXGoals();
+	zGoals = table->getZGoals();
 }
 void mvCollision::setPuck(mvPuck *p)
 {
@@ -46,10 +47,12 @@ void mvCollision::clearTable()
 {
 	//clear table reference
 	table = NULL;
-	//clear objects in maze
+	//clear walls on table
 	xWalls.clear();
 	zWalls.clear();
-	//TODO clear goal structures
+	//clear goals on table
+	xGoals.clear();
+	zGoals.clear();
 }
 
 void mvCollision::clearPuck()
@@ -74,7 +77,6 @@ void mvCollision::clearObjs()
 	clearPaddle1();
 	clearPaddle2();
 }
-//showing how to use git
 
 //TODO: currently function is ugly 
 //needs to be broken down into parts
@@ -85,7 +87,7 @@ void mvCollision::clearObjs()
 int mvCollision::resolveCollisions()
 {
 	//if ball or maze refernces not set return invalid
-	if(ball == NULL || maze == NULL)
+	if(table == NULL || puck == NULL || paddle1 == NULL || paddle2 == NULL)
 		return INVALID;
 
 	//flag for if the ball is in goal
@@ -96,48 +98,47 @@ int mvCollision::resolveCollisions()
 	std::map<int,std::pair<int,int> > walls;
 	std::set<int> intersections;
 
-	//if falling do nothing
-	if(ball->falling)
-		return HOLE;
-
 	//check for a collision
 
+	//TODO
 	//check if in goal
-	if(sqrt((ball->pos.x - goal.x)*(ball->pos.x - goal.x) + (ball->pos.z - goal.y)*(ball->pos.z - goal.y)) < goal.z)
+
+	//check collision with paddles
+	double paddlePuckDist = sqrt((puck->pos.x-paddle1->pos.x)*(puck->pos.x-paddle1->pos.x) + (puck->pos.z-paddle1->pos.z)*(puck->pos.z-paddle1->pos.z));
+
+	if(paddlePuckDist <= puck->radius + paddle1->radius)
 	{
-		//print output as it is the only way to know we reached the goal currently
-		std::cout << "goal reached game over\n";
+		//puck collided with paddle
 
-		//cannot return here as we still need collisions so set flag
-		reachedGoal = true;
-	}
+		//bounce the puck off the wall using the norm to find correct direction
+		
+		glm::vec3 combinedVel = puck->vel - paddle1->vel;
+		glm::vec3 norm = puck->pos - paddle1->pos;
+		glm::vec3 orth = glm::vec3(-norm.z,0.0,-norm.x);
 
-	//check if on hole
-	for(int i=0,size=holes.size();i<size;++i)
-	{
-		double holeTest = sqrt((ball->pos.x - holes[i].x)*(ball->pos.x - holes[i].x) + (ball->pos.z - holes[i].z)*(ball->pos.z - holes[i].z));
-		if(holeTest < holes[i].r)
-		{
-			//fell into hole
+		double d = paddlePuckDist - puck->radius - paddle1->radius;
 
-			//create a fall bounce to try and make the ball not go throught the floor a bit
-			glm::vec3 fallBounce(ball->pos.x - holes[i].x, 0.0, ball->pos.z - holes[i].z);
+		d /= -2.0;
+		
+		norm = glm::normalize(norm);
+		orth = glm::normalize(orth);
 
-			//scale bounce enough so that ball doesnt go through floor
-			if(radius - (holes[i].r - holeTest) > 0)
-				fallBounce *= -3*(radius - (holes[i].r - holeTest));
+		puck->pos = puck->pos + norm*glm::vec3(d);
+		
+		double nV_Paddle;
+		double nV_Puck, oV_Puck;
+		
+		nV_Paddle = glm::dot(paddle1->vel,norm);
+		nV_Puck = glm::dot(puck->vel,norm);
 
-			//set ball velocity
-			ball->vel = fallBounce;
+		oV_Puck = glm::dot(puck->vel,orth);
 
-			//set falling gravity
-			ball->acc.y = -9.8f;
-			ball->falling = true;
+		if(nV_Paddle < 0)
+			nV_Paddle = 0;
+		
+		nV_Puck = abs(nV_Puck) + nV_Paddle;
 
-			//imform user of fall since we do not reset the ball for them
-			std::cout << "fell into hole game over\n";
-			return HOLE;
-		}
+		puck->vel = orth*glm::vec3(oV_Puck) + norm*glm::vec3(nV_Puck);
 	}
 
 	//check collision with walls
@@ -145,24 +146,24 @@ int mvCollision::resolveCollisions()
 	//search through x axis aligned walls
 	for(int i=0,sizei=xWalls.size();i<sizei;++i)
 	{
-		if(ball->pos.x + radius > xWalls[i].start && ball->pos.x - radius < xWalls[i].end)
+		if(puck->pos.x + puck->radius > xWalls[i].start && puck->pos.x - puck->radius < xWalls[i].end)
 		{
 			xWallsSet.insert(xWallsSet.end(),xWalls[i].id);
 			walls[xWalls[i].id].first = i;
 		}
-		else if(ball->pos.x + radius < xWalls[i].start)
+		else if(puck->pos.x + puck->radius < xWalls[i].start)
 			break;
 	}
 
 	//search through z axis aligned walls
 	for(int i=0,sizei=zWalls.size();i<sizei;++i)
 	{
-		if(ball->pos.z + radius > zWalls[i].start && ball->pos.z - radius < zWalls[i].end)
+		if(puck->pos.z + puck->radius > zWalls[i].start && puck->pos.z - puck->radius < zWalls[i].end)
 		{
 			zWallsSet.insert(zWallsSet.end(),zWalls[i].id);
 			walls[zWalls[i].id].second = i;
 		}
-		else if(ball->pos.z + radius < zWalls[i].start)
+		else if(puck->pos.z + puck->radius < zWalls[i].start)
 			break;
 	}
 
@@ -195,13 +196,13 @@ int mvCollision::resolveCollisions()
 		//set default norm
 		glm::vec2 norm(0.0);
 			
-		//check if ball is in wall
-		if(ball->pos.x > xWalls[walls[index].first].start && ball->pos.x < xWalls[walls[index].first].end && ball->pos.z > zWalls[walls[index].second].start && ball->pos.z < zWalls[walls[index].second].end)
+		//check if puck is in wall
+		if(puck->pos.x > xWalls[walls[index].first].start && puck->pos.x < xWalls[walls[index].first].end && puck->pos.z > zWalls[walls[index].second].start && puck->pos.z < zWalls[walls[index].second].end)
 		{
 			//center is in wall
 
 			//currently do not do anything
-			//unless the computer sucks the ball should never move fast enough that in a time step it is suddenly in a wall
+			//unless the computer sucks the puck should never move fast enough that in a time step it is suddenly in a wall
 				
 			//ignore this following commented out code as it is incomplete
 
@@ -252,12 +253,12 @@ int mvCollision::resolveCollisions()
 		}
 		else
 		{
-			//radius of ball intersected a wall
+			//radius of puck intersected a wall
 
-			//get the closest wall segment with the ball
+			//get the closest wall segment with the puck
 
 			//first segment is default closest
-			double dist =  radius - distanceLineSegPt(wallPts[0].first,wallPts[0].second,glm::vec2(ball->pos.x, ball->pos.z));
+			double dist =  puck->radius - distanceLineSegPt(wallPts[0].first,wallPts[0].second,glm::vec2(puck->pos.x, puck->pos.z));
 
 			//keep track of the segment(s) that are closest
 			std::vector<int> intersectedSegments;
@@ -266,7 +267,7 @@ int mvCollision::resolveCollisions()
 			for(int i=1;i<4;++i)
 			{
 				//get distance from center of sphere to line segment 
-				double d = radius - distanceLineSegPt(wallPts[i].first,wallPts[i].second,glm::vec2(ball->pos.x, ball->pos.z));
+				double d = puck->radius - distanceLineSegPt(wallPts[i].first,wallPts[i].second,glm::vec2(puck->pos.x, puck->pos.z));
 				
 				//biggest d will be closest since we are doing radius - distance
 				if(d > dist)
@@ -277,7 +278,7 @@ int mvCollision::resolveCollisions()
 				}
 				else if(d == dist)
 				{
-					//ball can be hitting two segments at same time...
+					//puck can be hitting two segments at same time...
 					//so add to tracked segments
 					intersectedSegments.push_back(i);
 				}
@@ -288,8 +289,8 @@ int mvCollision::resolveCollisions()
 			{
 				//didnt actually collide
 
-				//this happens because the ball is a sphere and we are doing axis aligned search to find collisions
-				//happens when ball is close to hitting a corner of a wall
+				//this happens because the puck is a sphere and we are doing axis aligned search to find collisions
+				//happens when puck is close to hitting a corner of a wall
 
 				return NONE;
 			}
@@ -306,11 +307,11 @@ int mvCollision::resolveCollisions()
 				tmpNorm = glm::normalize(tmpNorm);
 
 				//determine the direction of the normal
-				if(glm::dot(tmpNorm,wallPts[intersectedSegments[i]].first-glm::vec2(ball->pos.x,ball->pos.z)) > 0)
+				if(glm::dot(tmpNorm,wallPts[intersectedSegments[i]].first-glm::vec2(puck->pos.x,puck->pos.z)) > 0)
 					tmpNorm *= -1;
 
-				//add the normal as a normal force acting on the ball for the next physics update
-				ball->normalForces.push_back(glm::vec3(tmpNorm.x, 0.0, tmpNorm.y));
+				//add the normal as a normal force acting on the puck for the next physics update
+				puck->normalForces.push_back(glm::vec3(tmpNorm.x, 0.0, tmpNorm.y));
 
 				//sum up normals
 				norm += tmpNorm;
@@ -322,34 +323,34 @@ int mvCollision::resolveCollisions()
 			//ensure it is normalized
 			norm = glm::normalize(norm);
 
-			//set offset to keep ball out of the walls
+			//set offset to keep puck out of the walls
 			glm::vec2 offset(norm.x*dist, norm.y*dist);
 
-			//move ball out of wall
-			ball->pos = glm::vec3(offset.x + ball->pos.x, 0.0, offset.y + ball->pos.z);
+			//move puck out of wall
+			puck->pos = glm::vec3(offset.x + puck->pos.x, 0.0, offset.y + puck->pos.z);
 		}
 
-		//bounce the ball off the wall using the norm to find correct direction
+		//bounce the puck off the wall using the norm to find correct direction
 
-		double u = -2*glm::dot(ball->vel,glm::vec3(norm.x, 0.0, norm.y));
+		double u = -2*glm::dot(puck->vel,glm::vec3(norm.x, 0.0, norm.y));
 
-		glm::vec3 nV = glm::normalize( ball->vel + glm::vec3(norm.x*u, 0.0, norm.y*u) );
+		glm::vec3 nV = glm::normalize( puck->vel + glm::vec3(norm.x*u, 0.0, norm.y*u) );
 		
 		nV = glm::normalize(nV);
 
 		//scale back the velocity as momentom and energy is lost
-		float scale = glm::length(ball->vel)*bouncyness;
+		float scale = glm::length(puck->vel)*bouncyness;
 			
 		nV.x = nV.x * scale;
 		nV.y = nV.y * scale;
 		nV.z = nV.z * scale;
 
 		//set new velocity
-		ball->vel = nV;
+		puck->vel = nV;
 	}
 
 	//return proper result
 	if(reachedGoal)
-		return GOAL;
+		return GOAL1;
 	return NONE;
 }

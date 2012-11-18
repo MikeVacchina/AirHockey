@@ -7,7 +7,7 @@ mvInput::mvInput()
 	lMouse = MOUSE_INVALID;
 	rMouse = MOUSE_INVALID;
 
-	mouseSensitivity = 15.0;
+	mouseSensitivity = 1.0;
 }
 
 
@@ -46,6 +46,10 @@ bool mvInput::handleMouseMotionFunc(int x, int y, mvMouseData &mouseOutput)
 		glm::vec3 offset( (init_x-x)/mouseSensitivity , 0.0, (init_y-y)/mouseSensitivity );
 
 		mouseOutput.vel = init_pos + offset;
+		
+		init_x = x;
+		init_y = y;
+
 		return true;
 	}
 	return false;

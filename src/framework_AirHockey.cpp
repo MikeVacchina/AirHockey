@@ -57,6 +57,15 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 	objs.push_back(display.getPaddle2Reference());
 	objs.push_back(display.getTableReference());
 
+	physics.setObjs(objs);
+	
+	collision.setPuck(display.getPuckReference());
+	collision.setPaddle1(display.getPaddle1Reference());
+	collision.setPaddle2(display.getPaddle2Reference());
+	collision.setTable(display.getTableReference());
+
+	//collision.bouncyness = 1.0;
+
 	//initialize resources
 	if(!display.initializeDisplayResources())
 		return false;
@@ -140,38 +149,71 @@ void framework_AirHockey::idleFunc()
 	
 	glm::mat4 modelOffset;
 
-	double xVelocity, zVelocity;
+	double xVelocity=0.0, zVelocity=0.0;
+	double modifier = 200.0;
 	
 	//get time of each key down as there effect on paddle1's position
-	xVelocity += userInput.timeSpecialDown(GLUT_KEY_RIGHT);
-	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_LEFT);
+	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_RIGHT);
+	xVelocity += userInput.timeSpecialDown(GLUT_KEY_LEFT);
 
 	zVelocity -= userInput.timeSpecialDown(GLUT_KEY_DOWN);
 	zVelocity += userInput.timeSpecialDown(GLUT_KEY_UP);
+	
+	xVelocity *= modifier;
+	zVelocity *= modifier;
 
 	objs[PADDLE1]->vel = objs[PADDLE1]->vel+glm::vec3(xVelocity, 0.0, zVelocity);
 	
+	xVelocity=0.0;
+	zVelocity=0.0;
+
 	//get time of each key down as there effect on paddle2's position
-	xVelocity += userInput.timeKeyDown('d');
-	xVelocity -= userInput.timeKeyDown('a');
+	xVelocity -= userInput.timeKeyDown('d');
+	xVelocity += userInput.timeKeyDown('a');
 
 	zVelocity -= userInput.timeKeyDown('s');
 	zVelocity += userInput.timeKeyDown('w');
 	
+	xVelocity *= modifier;
+	zVelocity *= modifier;
+	
 	objs[PADDLE2]->vel = objs[PADDLE2]->vel+glm::vec3(xVelocity, 0.0, zVelocity);
 	
+	double len = glm::length(objs[PADDLE1]->vel);
+	if(len>15)
+	{
+		double scale = 15.0/len;
+
+		objs[PADDLE1]->vel = objs[PADDLE1]->vel * glm::vec3(scale);
+	}
+	len = glm::length(objs[PADDLE2]->vel);
+	if(len>15)
+	{
+		double scale = 15.0/len;
+
+		objs[PADDLE2]->vel = objs[PADDLE2]->vel * glm::vec3(scale);
+	}
+		
 	//update physics for objects
 	physics.update(stopwatch.resetTime());
 	
 	//resolve any possible collisions that might occur
 	collision.resolveCollisions();
 	
+	float angle = 90.0;
+	glm::mat4 r = glm::rotate(glm::mat4(1.0f),angle,glm::vec3(1.0f,0.0f,0.0f));
+	
 	//set new puck position
-	objs[PUCK]->model = glm::translate(glm::mat4(1.0f),objs[PUCK]->pos);
+	objs[PUCK]->model = glm::translate(glm::mat4(1.0f),objs[PUCK]->pos)*r;
 	//set new paddle1 position
-	objs[PADDLE1]->model = glm::translate(glm::mat4(1.0f),objs[PADDLE1]->pos);
+	objs[PADDLE1]->model = glm::translate(glm::mat4(1.0f),objs[PADDLE1]->pos)*r;
 	//set new paddle2 position
-	objs[PADDLE2]->model = glm::translate(glm::mat4(1.0f),objs[PADDLE2]->pos);
+	objs[PADDLE2]->model = glm::translate(glm::mat4(1.0f),objs[PADDLE2]->pos)*r;
+
+	objs[TABLE]->model = r;
+	
+	objs[PADDLE1]->vel = glm::vec3(0.0);
+	objs[PADDLE2]->vel = glm::vec3(0.0);
 
 	//update display
 	display.display();

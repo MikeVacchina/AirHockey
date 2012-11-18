@@ -8,6 +8,8 @@ class mvPuck : public mvObject
 public:
 	mvPuck();
 	~mvPuck();
+
+	double radius;
 };
 
 #endif

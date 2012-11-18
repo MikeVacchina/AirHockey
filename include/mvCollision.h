@@ -53,10 +53,12 @@ private:
 	mvPuck *puck;
 	mvPaddle *paddle1;
 	mvPaddle *paddle2;
-
+	
 	std::vector<mvWall> xWalls;
 	std::vector<mvWall> zWalls;
-	//TODO: need some structure for the goals
+
+	std::vector<mvWall> xGoals;
+	std::vector<mvWall> zGoals;
 };
 
 #endif //MVCOLLISION
