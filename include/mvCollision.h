@@ -59,6 +59,9 @@ private:
 
 	std::vector<mvWall> xGoals;
 	std::vector<mvWall> zGoals;
+
+	void getWallIntersection(glm::vec3 pos, double  radius, std::vector<mvWall> &xGoals, std::vector<mvWall> &zGoals, std::map<int,std::pair<int,int> > &goals, std::set<int> &intersectionsGoal);
+	void resolvePaddleCollision(glm::vec3 &pos, double radius, glm::vec3 &vel, glm::vec3 p, double r, glm::vec3 v);
 };
 
 #endif //MVCOLLISION

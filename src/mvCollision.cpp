@@ -100,64 +100,35 @@ int mvCollision::resolveCollisions()
 	std::set<int> intersections;
 	std::set<int> intersectionsGoal;
 
+	//Ensure Paddles are confined to their spaces
+	if(paddle1->pos.x + paddle1->radius > xWalls[xWalls.size()-2].end)
+		paddle1->pos.x = xWalls[xWalls.size()-2].end - paddle1->radius;
+	if(paddle1->pos.x - paddle1->radius < xWalls[1].start)
+		paddle1->pos.x = xWalls[1].start + paddle1->radius;
+	if(paddle1->pos.z - paddle1->radius < zWalls[1].end)
+		paddle1->pos.z = zWalls[1].end + paddle1->radius;
+	if(paddle1->pos.z + paddle1->radius > 0)
+		paddle1->pos.z = -paddle1->radius;
+	
+	if(paddle2->pos.x + paddle2->radius > xWalls[xWalls.size()-2].end)
+		paddle2->pos.x = xWalls[xWalls.size()-2].end - paddle2->radius;
+	if(paddle2->pos.x - paddle2->radius < xWalls[1].start)
+		paddle2->pos.x = xWalls[1].start + paddle2->radius;
+	if(paddle2->pos.z + paddle2->radius > zWalls[zWalls.size()-2].start)
+		paddle2->pos.z = zWalls[zWalls.size()-2].start - paddle2->radius;
+	if(paddle2->pos.z - paddle2->radius < 0)
+		paddle2->pos.z = paddle2->radius;
+
 	//check for a collision
 
-	//TODO
-	//check if in goal
-	//return GOAL1 or GOAL2 if in one of the goals
-	//search through x axis aligned walls
-	for(int i=0,sizei=xGoals.size();i<sizei;++i)
-	{
-		if(puck->pos.x + puck->radius > xGoals[i].start && puck->pos.x - puck->radius < xGoals[i].end)
-		{
-			xGoalsSet.insert(xGoalsSet.end(),xGoals[i].id);
-			goals[xGoals[i].id].first = i;
-		}
-		else if(puck->pos.x + puck->radius < xGoals[i].start)
-			break;
-	}
-
-	//search through z axis aligned walls
-	for(int i=0,sizei=zGoals.size();i<sizei;++i)
-	{
-		if(puck->pos.z + puck->radius > zGoals[i].start && puck->pos.z - puck->radius < zGoals[i].end)
-		{
-			zGoalsSet.insert(zGoalsSet.end(),zGoals[i].id);
-			goals[zGoals[i].id].second = i;
-		}
-		else if(puck->pos.z + puck->radius < zGoals[i].start)
-			break;
-	}
-
-	//get walls were there was an intersection in both x and z directions
-	std::set_intersection(xGoalsSet.begin(), xGoalsSet.end(), zGoalsSet.begin(), zGoalsSet.end(), std::inserter(intersectionsGoal, intersectionsGoal.end()));
+	getWallIntersection(puck->pos, puck->radius, xGoals, zGoals, goals, intersectionsGoal);
 	
 	//each intersection is a collision with a wall
 	for(std::set<int>::iterator it=intersectionsGoal.begin();it!=intersectionsGoal.end();++it)//there has been a collision!
 	{
-		//resolve collision
-
 		int index = (*it);
 
-		//get segments of wall
-		std::vector<std::pair<glm::vec2,glm::vec2> > goalPts;
-
-		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].start),
-														 glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].end)));
-
-		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].end),
-														 glm::vec2( xGoals[goals[index].first].end,   zGoals[goals[index].second].end)));
-			
-		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].end, zGoals[goals[index].second].end),
-														 glm::vec2( xGoals[goals[index].first].end, zGoals[goals[index].second].start)));
-
-		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].end,   zGoals[goals[index].second].start),
-														 glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].start)));
-
-		//set default norm
-		glm::vec2 norm(0.0);
-			
-		//check if puck is in wall
+		//check if puck is in goal rather than on edge of it
 		if(puck->pos.x > xGoals[goals[index].first].start && puck->pos.x < xGoals[goals[index].first].end && puck->pos.z > zGoals[goals[index].second].start && puck->pos.z < zGoals[goals[index].second].end)
 		{
 			//TODO: make it dissappear
@@ -166,151 +137,14 @@ int mvCollision::resolveCollisions()
 			if(xGoals[goals[index].first].id == 2)
 				return GOAL2;
 		}
-		else
-		{
-			//radius of puck intersected a wall
-
-			//get the closest wall segment with the puck
-
-			//first segment is default closest
-			double dist =  puck->radius - distanceLineSegPt(goalPts[0].first,goalPts[0].second,glm::vec2(puck->pos.x, puck->pos.z));
-
-			//keep track of the segment(s) that are closest
-			std::vector<int> intersectedSegments;
-			intersectedSegments.push_back(0);
-
-			for(int i=1;i<4;++i)
-			{
-				//get distance from center of sphere to line segment 
-				double d = puck->radius - distanceLineSegPt(goalPts[i].first,goalPts[i].second,glm::vec2(puck->pos.x, puck->pos.z));
-				
-				//biggest d will be closest since we are doing radius - distance
-				if(d > dist)
-				{
-					intersectedSegments.clear();
-					intersectedSegments.push_back(i);
-					dist = d;
-				}
-				else if(d == dist)
-				{
-					//puck can be hitting two segments at same time...
-					//so add to tracked segments
-					intersectedSegments.push_back(i);
-				}
-			}
-
-			//check for valid distance
-			if(dist < 0)
-			{
-				//didnt actually collide
-
-				//this happens because the puck is a sphere and we are doing axis aligned search to find collisions
-				//happens when puck is close to hitting a corner of a wall
-
-				return NONE;
-			}
-		}
 	}
+	
+	resolvePaddleCollision(puck->pos,puck->radius,puck->vel,paddle1->pos,paddle1->radius, paddle1->vel);
 
-	//check collision with paddles
-	double paddlePuckDist = sqrt((puck->pos.x-paddle1->pos.x)*(puck->pos.x-paddle1->pos.x) + (puck->pos.z-paddle1->pos.z)*(puck->pos.z-paddle1->pos.z));
-
-	if(paddlePuckDist <= puck->radius + paddle1->radius)
-	{
-		//puck collided with paddle
-		
-		glm::vec3 combinedVel = puck->vel - paddle1->vel;
-		glm::vec3 norm = puck->pos - paddle1->pos;
-		glm::vec3 orth = glm::vec3(-norm.z,0.0,-norm.x);
-
-		double d = paddlePuckDist - puck->radius - paddle1->radius;
-
-		d /= -2.0;
-		
-		norm = glm::normalize(norm);
-		orth = glm::normalize(orth);
-
-		puck->pos = puck->pos + norm*glm::vec3(d);
-		
-		double nV_Paddle;
-		double nV_Puck, oV_Puck;
-		
-		nV_Paddle = glm::dot(paddle1->vel,norm);
-		nV_Puck = glm::dot(puck->vel,norm);
-
-		oV_Puck = glm::dot(puck->vel,orth);
-
-		if(nV_Paddle < 0)
-			nV_Paddle = 0;
-		
-		nV_Puck = abs(nV_Puck) + nV_Paddle;
-
-		puck->vel = orth*glm::vec3(oV_Puck) + norm*glm::vec3(nV_Puck);
-	}
-
-	paddlePuckDist = sqrt((puck->pos.x-paddle2->pos.x)*(puck->pos.x-paddle2->pos.x) + (puck->pos.z-paddle2->pos.z)*(puck->pos.z-paddle2->pos.z));
-
-	if(paddlePuckDist <= puck->radius + paddle1->radius)
-	{
-		//puck collided with paddle
-		
-		glm::vec3 combinedVel = puck->vel - paddle2->vel;
-		glm::vec3 norm = puck->pos - paddle2->pos;
-		glm::vec3 orth = glm::vec3(-norm.z,0.0,-norm.x);
-
-		double d = paddlePuckDist - puck->radius - paddle2->radius;
-
-		d /= -2.0;
-		
-		norm = glm::normalize(norm);
-		orth = glm::normalize(orth);
-
-		puck->pos = puck->pos + norm*glm::vec3(d);
-		
-		double nV_Paddle;
-		double nV_Puck, oV_Puck;
-		
-		nV_Paddle = glm::dot(paddle2->vel,norm);
-		nV_Puck = glm::dot(puck->vel,norm);
-
-		oV_Puck = glm::dot(puck->vel,orth);
-
-		if(nV_Paddle < 0)
-			nV_Paddle = 0;
-		
-		nV_Puck = abs(nV_Puck) + nV_Paddle;
-
-		puck->vel = orth*glm::vec3(oV_Puck) + norm*glm::vec3(nV_Puck);
-	}
+	resolvePaddleCollision(puck->pos,puck->radius,puck->vel,paddle2->pos,paddle2->radius, paddle2->vel);
 
 	//check collision with walls
-
-	//search through x axis aligned walls
-	for(int i=0,sizei=xWalls.size();i<sizei;++i)
-	{
-		if(puck->pos.x + puck->radius > xWalls[i].start && puck->pos.x - puck->radius < xWalls[i].end)
-		{
-			xWallsSet.insert(xWallsSet.end(),xWalls[i].id);
-			walls[xWalls[i].id].first = i;
-		}
-		else if(puck->pos.x + puck->radius < xWalls[i].start)
-			break;
-	}
-
-	//search through z axis aligned walls
-	for(int i=0,sizei=zWalls.size();i<sizei;++i)
-	{
-		if(puck->pos.z + puck->radius > zWalls[i].start && puck->pos.z - puck->radius < zWalls[i].end)
-		{
-			zWallsSet.insert(zWallsSet.end(),zWalls[i].id);
-			walls[zWalls[i].id].second = i;
-		}
-		else if(puck->pos.z + puck->radius < zWalls[i].start)
-			break;
-	}
-
-	//get walls were there was an intersection in both x and z directions
-	std::set_intersection(xWallsSet.begin(), xWallsSet.end(), zWallsSet.begin(), zWallsSet.end(), std::inserter(intersections, intersections.end()));
+	getWallIntersection(puck->pos, puck->radius, xWalls, zWalls, walls, intersections);
 	
 	//each intersection is a collision with a wall
 	for(std::set<int>::iterator it=intersections.begin();it!=intersections.end();++it)//there has been a collision!
@@ -318,7 +152,6 @@ int mvCollision::resolveCollisions()
 		//resolve collision
 
 		int index = (*it);
-
 
 		//get segments of wall
 		std::vector<std::pair<glm::vec2,glm::vec2> > wallPts;
@@ -341,57 +174,6 @@ int mvCollision::resolveCollisions()
 		//check if puck is in wall
 		if(puck->pos.x > xWalls[walls[index].first].start && puck->pos.x < xWalls[walls[index].first].end && puck->pos.z > zWalls[walls[index].second].start && puck->pos.z < zWalls[walls[index].second].end)
 		{
-			//center is in wall
-
-			//currently do not do anything
-			//unless the computer sucks the puck should never move fast enough that in a time step it is suddenly in a wall
-				
-			//ignore this following commented out code as it is incomplete
-
-			//get line segment(s) it intersects with
-				//using commented out section below
-			//int segID = getIntersectingSegment(wallPts, glm::vec2(lP.x, lP.y),glm::vec2(P.x, P.y));
-
-			//get normal to line segment(s)
-			//bounce using normal
-
-			//glm::vec2 motionFirst(lP.x, lP.z);
-			//glm::vec2 motionSecond(P.x-lP.x, P.z-lP.z);
-
-			//std::vector<glm::vec2> wallPts;
-
-			//std::set<int>::iterator it = intersections.begin();
-			//
-			//wallPts.push_back(glm::vec2( xWalls[walls[*it].first].start, zWalls[walls[*it].second].start));
-			//wallPts.push_back(glm::vec2( xWalls[walls[*it].first].start, zWalls[walls[*it].second].end));
-			//wallPts.push_back(glm::vec2( xWalls[walls[*it].first].end, zWalls[walls[*it].second].end));
-			//wallPts.push_back(glm::vec2( xWalls[walls[*it].first].end, zWalls[walls[*it].second].start));
-
-			//for(int i=0,size=wallPts.size();i<size;++i)
-			//{
-			//	int next = i+1==size?0:i+i;
-			//	double top = glm::dot((motionFirst - wallPts[i]),wallPts[next]);
-			//	double btm = glm::dot(motionSecond, wallPts[next]);
-			//	double val;
-
-			//	if(btm == 0)
-			//	{
-			//		//parallel :(
-			//		if(top==0)
-			//		{
-			//			//colinear :|
-			//		}
-			//	}
-			//	else
-			//	{
-			//		val = top/btm;
-			//		if(val <= 1 && val >= 0)
-			//		{
-			//			//found segment of collision
-			//			glm::vec2 ptCollision = motionFirst + motionSecond*glm::vec2(val);
-			//		}
-			//	}
-			//}
 		}
 		else
 		{
@@ -495,4 +277,76 @@ int mvCollision::resolveCollisions()
 	if(reachedGoal)
 		return GOAL1;
 	return NONE;
+}
+
+void mvCollision::getWallIntersection(glm::vec3 pos, double radius, std::vector<mvWall> &xWalls, std::vector<mvWall> &zWalls, std::map<int,std::pair<int,int> > &walls, std::set<int> &intersections)
+{
+	std::set<int> xWallsSet;
+	std::set<int> zWallsSet;
+
+	//search through x axis aligned walls
+	for(int i=0,sizei=xWalls.size();i<sizei;++i)
+	{
+		if(pos.x + radius > xWalls[i].start && pos.x - radius < xWalls[i].end)
+		{
+			xWallsSet.insert(xWallsSet.end(),xWalls[i].id);
+			walls[xWalls[i].id].first = i;
+		}
+		else if(pos.x + radius < xWalls[i].start)
+			break;
+	}
+
+	//search through z axis aligned walls
+	for(int i=0,sizei=zWalls.size();i<sizei;++i)
+	{
+		if(pos.z + radius > zWalls[i].start && pos.z - radius < zWalls[i].end)
+		{
+			zWallsSet.insert(zWallsSet.end(),zWalls[i].id);
+			walls[zWalls[i].id].second = i;
+		}
+		else if(pos.z + radius < zWalls[i].start)
+			break;
+	}
+
+	//get walls were there was an intersection in both x and z directions
+	std::set_intersection(xWallsSet.begin(), xWallsSet.end(), zWallsSet.begin(), zWallsSet.end(), std::inserter(intersections, intersections.end()));
+}
+
+void mvCollision::resolvePaddleCollision(glm::vec3 &pos, double radius, glm::vec3 &vel, glm::vec3 p, double r, glm::vec3 v)
+{
+	//check collision with paddles
+	double paddlePuckDist = sqrt((pos.x-p.x)*(pos.x-p.x) + (pos.z-p.z)*(pos.z-p.z));
+
+	if(paddlePuckDist <= radius + r)
+	{
+		//puck collided with paddle
+		
+		glm::vec3 combinedVel = vel - v;
+		glm::vec3 norm = pos - p;
+		glm::vec3 orth = glm::vec3(-norm.z,0.0,-norm.x);
+
+		double d = paddlePuckDist - radius - r;
+
+		d /= -2.0;
+		
+		norm = glm::normalize(norm);
+		orth = glm::normalize(orth);
+
+		pos = pos + norm*glm::vec3(d);
+		
+		double nV_Paddle;
+		double nV_Puck, oV_Puck;
+		
+		nV_Paddle = glm::dot(v,norm);
+		nV_Puck = glm::dot(vel,norm);
+
+		oV_Puck = glm::dot(vel,orth);
+
+		if(nV_Paddle < 0)
+			nV_Paddle = 0;
+		
+		nV_Puck = abs(nV_Puck) + nV_Paddle;
+
+		vel = orth*glm::vec3(oV_Puck) + norm*glm::vec3(nV_Puck);
+	}
 }

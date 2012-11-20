@@ -150,7 +150,7 @@ void framework_AirHockey::idleFunc()
 	glm::mat4 modelOffset;
 
 	double xVelocity=0.0, zVelocity=0.0;
-	double modifier = 200.0;
+	double modifier = 150.0;
 	
 	//get time of each key down as there effect on paddle1's position
 	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_RIGHT);

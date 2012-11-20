@@ -8,4 +8,5 @@ menus
 needed to rotate camera (might want to change how controls work with moved camera)
 	I'm thinking jkli can control it and/or right mouse down with movement
 
-Need to confine paddles to table and their side of table
+BUG:
+	There is a bug that they puck can move fast enought that it will pass through walls/goal without detection
