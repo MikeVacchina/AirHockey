@@ -35,8 +35,6 @@ void mvDisplay::initializeDisplay(std::string windowName, int w, int h)
 
 bool mvDisplay::loadObjects()
 {
-	//TODO load objects
-	
 	puck.assimpLoadMesh("Puck.obj");
 	puck.setColor(1,0,0);
 	table.assimpLoadMesh("AirHockeyTable.obj");

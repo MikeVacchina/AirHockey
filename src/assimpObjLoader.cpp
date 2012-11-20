@@ -24,6 +24,7 @@ bool assimpObjLoader::loadFile(const char *filename)
 	aiFace *faces = (*scene->mMeshes)->mFaces;
 	aiVector3D *vertices = (*scene->mMeshes)->mVertices;
 	aiVector3D *vertexNormals = (*scene->mMeshes)->mNormals;
+	//TODO get uv
 	
 	int faceCount = (*scene->mMeshes)->mNumFaces;
 	int vertexCount = (*scene->mMeshes)->mNumVertices;

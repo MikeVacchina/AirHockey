@@ -82,8 +82,6 @@ void mvCollision::clearObjs()
 //needs to be broken down into parts
 //collision detection with the multiple objects
 //followed by collision response
-
-//TODO: fix collisions for new objects
 int mvCollision::resolveCollisions()
 {
 	//if ball or maze refernces not set return invalid
@@ -92,17 +90,127 @@ int mvCollision::resolveCollisions()
 
 	//flag for if the ball is in goal
 	bool reachedGoal=false;
-
+	
 	std::set<int> xWallsSet;
 	std::set<int> zWallsSet;
+	std::set<int> xGoalsSet;
+	std::set<int> zGoalsSet;
 	std::map<int,std::pair<int,int> > walls;
+	std::map<int,std::pair<int,int> > goals;
 	std::set<int> intersections;
+	std::set<int> intersectionsGoal;
 
 	//check for a collision
 
 	//TODO
 	//check if in goal
 	//return GOAL1 or GOAL2 if in one of the goals
+	//search through x axis aligned walls
+	for(int i=0,sizei=xGoals.size();i<sizei;++i)
+	{
+		if(puck->pos.x + puck->radius > xGoals[i].start && puck->pos.x - puck->radius < xGoals[i].end)
+		{
+			xGoalsSet.insert(xGoalsSet.end(),xGoals[i].id);
+			goals[xGoals[i].id].first = i;
+		}
+		else if(puck->pos.x + puck->radius < xGoals[i].start)
+			break;
+	}
+
+	//search through z axis aligned walls
+	for(int i=0,sizei=zGoals.size();i<sizei;++i)
+	{
+		if(puck->pos.z + puck->radius > zGoals[i].start && puck->pos.z - puck->radius < zGoals[i].end)
+		{
+			zGoalsSet.insert(zGoalsSet.end(),zGoals[i].id);
+			goals[zGoals[i].id].second = i;
+		}
+		else if(puck->pos.z + puck->radius < zGoals[i].start)
+			break;
+	}
+
+	//get walls were there was an intersection in both x and z directions
+	std::set_intersection(xGoalsSet.begin(), xGoalsSet.end(), zGoalsSet.begin(), zGoalsSet.end(), std::inserter(intersectionsGoal, intersectionsGoal.end()));
+	
+	//each intersection is a collision with a wall
+	for(std::set<int>::iterator it=intersectionsGoal.begin();it!=intersectionsGoal.end();++it)//there has been a collision!
+	{
+		//resolve collision
+
+		int index = (*it);
+
+		//get segments of wall
+		std::vector<std::pair<glm::vec2,glm::vec2> > goalPts;
+
+		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].start),
+														 glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].end)));
+
+		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].end),
+														 glm::vec2( xGoals[goals[index].first].end,   zGoals[goals[index].second].end)));
+			
+		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].end, zGoals[goals[index].second].end),
+														 glm::vec2( xGoals[goals[index].first].end, zGoals[goals[index].second].start)));
+
+		goalPts.push_back(std::pair<glm::vec2,glm::vec2>(glm::vec2( xGoals[goals[index].first].end,   zGoals[goals[index].second].start),
+														 glm::vec2( xGoals[goals[index].first].start, zGoals[goals[index].second].start)));
+
+		//set default norm
+		glm::vec2 norm(0.0);
+			
+		//check if puck is in wall
+		if(puck->pos.x > xGoals[goals[index].first].start && puck->pos.x < xGoals[goals[index].first].end && puck->pos.z > zGoals[goals[index].second].start && puck->pos.z < zGoals[goals[index].second].end)
+		{
+			//TODO: make it dissappear
+			if(xGoals[goals[index].first].id == 1)
+				return GOAL1;
+			if(xGoals[goals[index].first].id == 2)
+				return GOAL2;
+		}
+		else
+		{
+			//radius of puck intersected a wall
+
+			//get the closest wall segment with the puck
+
+			//first segment is default closest
+			double dist =  puck->radius - distanceLineSegPt(goalPts[0].first,goalPts[0].second,glm::vec2(puck->pos.x, puck->pos.z));
+
+			//keep track of the segment(s) that are closest
+			std::vector<int> intersectedSegments;
+			intersectedSegments.push_back(0);
+
+			for(int i=1;i<4;++i)
+			{
+				//get distance from center of sphere to line segment 
+				double d = puck->radius - distanceLineSegPt(goalPts[i].first,goalPts[i].second,glm::vec2(puck->pos.x, puck->pos.z));
+				
+				//biggest d will be closest since we are doing radius - distance
+				if(d > dist)
+				{
+					intersectedSegments.clear();
+					intersectedSegments.push_back(i);
+					dist = d;
+				}
+				else if(d == dist)
+				{
+					//puck can be hitting two segments at same time...
+					//so add to tracked segments
+					intersectedSegments.push_back(i);
+				}
+			}
+
+			//check for valid distance
+			if(dist < 0)
+			{
+				//didnt actually collide
+
+				//this happens because the puck is a sphere and we are doing axis aligned search to find collisions
+				//happens when puck is close to hitting a corner of a wall
+
+				return NONE;
+			}
+		}
+	}
 
 	//check collision with paddles
 	double paddlePuckDist = sqrt((puck->pos.x-paddle1->pos.x)*(puck->pos.x-paddle1->pos.x) + (puck->pos.z-paddle1->pos.z)*(puck->pos.z-paddle1->pos.z));

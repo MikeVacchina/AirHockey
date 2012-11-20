@@ -198,8 +198,13 @@ void framework_AirHockey::idleFunc()
 	physics.update(stopwatch.resetTime());
 	
 	//resolve any possible collisions that might occur
-	collision.resolveCollisions();
+	int code = collision.resolveCollisions();
 	
+	if(code == GOAL1)
+		std::cout << "Goal Scored 1\n";
+	if(code == GOAL2)
+		std::cout << "Goal Scored 2\n";
+
 	float angle = 90.0;
 	glm::mat4 r = glm::rotate(glm::mat4(1.0f),angle,glm::vec3(1.0f,0.0f,0.0f));
 	
