@@ -15,6 +15,9 @@ mvDisplay::mvDisplay()
 	SP = glm::vec4(0.0,0.0,0.0,1.0);
 
 	shininess = 100.0;
+
+    score_p1=0;
+    score_p2=0;
 }
 
 
@@ -43,11 +46,11 @@ bool mvDisplay::loadObjects()
 	paddle1.assimpLoadMesh("Paddle1.obj");
 	paddle1.setColor(0,1,0);
 	paddle1.fixMesh(PADDLE1);
-	paddle1.pos = glm::vec3(0.0,0.0,-3.8);
+	paddle1.pos = glm::vec3(0.0,0.0,-5.5);
 	paddle2.assimpLoadMesh("Paddle2.obj");
 	paddle2.setColor(0,0,1);
 	paddle2.fixMesh(PADDLE2);
-	paddle2.pos = glm::vec3(0.0,0.0,3.8);
+	paddle2.pos = glm::vec3(0.0,0.0,5.5);
 
 	return true;
 }
@@ -241,9 +244,11 @@ bool mvDisplay::initializeDisplayResources()
 
 void mvDisplay::display()
 {
+        
     //clear the screen
     glClearColor(0.0, 0.0, 0.2f, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    text.printw (0, -1, 0, "P1%iP2%i\0", score_p1, score_p2);
 
 	displayObject(puck);
 	displayObject(paddle1);
@@ -306,6 +311,30 @@ void mvDisplay::setCamPos(glm::vec3 camPos)
 	view = glm::lookAt(camPos,						//Eye Position
                         glm::vec3(0.0, 0.0, 0.0),	//Focus point
                         glm::vec3(0.0, 1.0, 0.0));	//Positive Y is up
+}
+
+void mvDisplay::addScore(int player)
+{
+	if (player == 1)
+        score_p1++;
+    else
+        score_p2++;
+}
+
+void mvDisplay::resetScore()
+{
+    score_p1=0;
+    score_p2=0;
+}
+
+int mvDisplay::checkForWinner ()
+{
+    if (score_p1 == 7)
+        return 1;
+    else if (score_p2 == 7)
+       return 2;
+    else
+        return 0;
 }
 
 void mvDisplay::objectBufferInit(mvObject &object)

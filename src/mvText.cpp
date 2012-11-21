@@ -1,6 +1,5 @@
 #include "mvText.h"
 
-
 mvText::mvText()
 {
 	font_style = GLUT_BITMAP_TIMES_ROMAN_24;
@@ -17,6 +16,7 @@ void mvText::printw (float x, float y, float z, char* format, ...)
     int i;          //  Iterator
     char * text;    // Text
  
+
     //  Initialize a variable argument list
     va_start(args, format);
  
@@ -38,7 +38,10 @@ void mvText::printw (float x, float y, float z, char* format, ...)
  
     //  Draw the characters one by one
     for (i = 0; text[i] != '\0'; i++)
-		glutBitmapCharacter(font_style, text[i]);
+    {
+        glColor3f (1, 1, 0);
+        glutBitmapCharacter(font_style, text[i]);
+    }
  
     //  Free the allocated memory for the string
     free(text);

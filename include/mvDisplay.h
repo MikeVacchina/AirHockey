@@ -24,6 +24,7 @@
 #include "mvPuck.h"
 #include "mvPaddle.h"
 #include "mvTable.h"
+#include "mvText.h"
 
 class mvDisplay
 {
@@ -55,6 +56,11 @@ public:
 	void toggleLightTwo();
 
 	void setCamPos(glm::vec3 camPos);
+
+    // set score
+    void addScore (int player); 
+    void resetScore ();
+    int checkForWinner ();
 
 private:
 	//initialize the object for gl and glut
@@ -100,6 +106,13 @@ private:
 	mvPaddle paddle1;
 	mvPaddle paddle2;
 	mvTable table;
+
+    //text handle
+    mvText text;
+
+    //score
+    int score_p1;
+    int score_p2;
 };
 
 #endif //MVDISPLAY
