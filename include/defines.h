@@ -23,6 +23,7 @@ const int GOAL1		= 1;
 const int GOAL2		= 2;
 const int NONE		= 3;
 
+//Obj identifiers
 const int PUCK		= 0;
 const int PADDLE1	= 1;
 const int PADDLE2	= 2;
