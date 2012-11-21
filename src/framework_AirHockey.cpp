@@ -20,7 +20,7 @@ framework_AirHockey::framework_AirHockey()
 	phi=50.0;
 	
     ai_enabled = false;
-    paddle_sensitivity = 200;
+    paddle_sensitivity = 200*25;
 }
 
 framework_AirHockey* framework_AirHockey::instance()

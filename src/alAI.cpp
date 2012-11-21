@@ -28,95 +28,112 @@ void alAI::setPaddle2(mvPaddle *p)
 double alAI::updateXVelocity()
 {
 	//get length of time key was/is down
-    
-    //if (puck_position < 1 && puck_position > -1)
-    //{
-        difficulty = rand () % 5 + 1;
-
-	    switch (difficulty) {
+    difficulty = rand () % 5 + 1;
+    if (puck->pos.z > 0)
+    {
+        switch (difficulty) 
+        {
 		    case 1:
             case 2:
-                if (paddle2->pos.x < puck->pos.x)
-				    return -1;
-			    else if (paddle2->pos.x > puck->pos.x)
-				    return 1;
-			    else 
-				    return 0;
-			    break;
-
-		    case 3:
+            case 3:
+            case 4:
                 return 0;
                 break;
-		    case 4:
 		    case 5:
 			    if (paddle2->pos.x < puck->pos.x)
-				    return 1;
+				    return 0.1;
 			    else if (paddle2->pos.x > puck->pos.x)
-				    return -1;
+				    return -0.1;
 			    else 
 				    return 0;
 			    break;
 		    default:
 			    break;
         }
-	//}
-    //else
-        return 0;
-
-	//std::cout << "paddle_position:" << paddle_position << std::endl;
-	//std::cout << "puck_position:" << puck_position << std::endl;
-}
-double alAI::updateZVelocity()
-{
-    if (puck->pos.z > 0)
-    {
-        if (puck->pos.z > paddle2->pos.z)
-            return 1;
-        else
-            return -1;
-    }
-}
-/*
-double evaluatePuck (glm::vec3 paddle_position, glm::vec3 puck_position)
-{
-    int difficulty = rand () % 5 + 1;
-    double ret = 0;
-    if (puck_position.z < 0)
-    {
-        ret = 0;
     }
     else
     {
-        if (puck_position->x < 1 && puck_position->x > -1)
+        if (paddle2->pos.x < 0)
         {
-            
-
-	        switch (difficulty) {
+	        switch (difficulty) 
+            {
 		        case 1:
-			        if (paddle_position->x > puck_position->x)
-				        ret = 1;
-			        else if (paddle_position->x < puck_position->x)
-				        ret = -1;
-			        else 
-				        ret = 0;
-			        break;
-		        case 2:
+                case 2:
 		        case 3:
-                    ret = 0;
-                    break;
 		        case 4:
+                    return 0;
+                    break;
 		        case 5:
-			        if (paddle_position->x > puck_position->x)
-				        ret = -1;
-			        else if (paddle_position->x < puck_position->x)
-				        ret = 1;
-			        else 
-				        ret = 0;
-			        break;
+                    return 0.2;
 		        default:
 			        break;
             }
-	    }
+        }
+        else if (paddle2->pos.x > 0)
+        {
+            switch (difficulty) 
+            {
+		        case 1:
+                case 2:
+		        case 3:
+                case 4:
+                    return 0;
+                    break;
+		        case 5:
+                    return -0.2;
+		        default:
+			        break;
+            }
+        }
     }
-    return ret;
-}*/
+    return 0;
+}
+double alAI::updateZVelocity()
+{
+    if (puck->pos.z == -3.0)
+    {
+       return 1;
+    }
+
+    /*
+    difficulty = rand () % 5 + 1;
+    if (puck->pos.z > 0)
+    {
+        switch (difficulty) 
+        {
+		    case 1:
+            case 2:
+		    case 3:
+            case 4:
+                return 0;
+                break;
+
+		    case 5:
+                return 1;
+		    default:
+			    break;
+        }
+    }
+    else
+    {
+        if (puck->pos.z < 3)
+        {
+            switch (difficulty) 
+            {
+		        case 1:
+                case 2:
+		        case 3:
+                case 4:
+                    return 0;
+                    break;
+
+		        case 5:
+                    return -1;
+		        default:
+			        break;
+            }
+        }
+    }
+    */
+    return 0;
+}
