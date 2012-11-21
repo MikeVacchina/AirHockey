@@ -242,10 +242,10 @@ void framework_AirHockey::idleFunc()
     if (ai_enabled)
     {
         xVelocity += aiInput.updateXVelocity();
-	    //zVelocity += aiInput.updateZVelocity();
+	    zVelocity += aiInput.updateZVelocity();
 
 	    xVelocity *= paddle_sensitivity;
-	    //zVelocity *= paddle_sensitivity;
+	    zVelocity *= paddle_sensitivity;
     }
     else
     {
@@ -355,7 +355,9 @@ void framework_AirHockey::menuFunc(int option)
 
 	switch(option)
 	{
-	case RESTART:
+	case RESTART:    
+	    theda=0.0;
+	    phi=50.0;
         objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
         objs[PUCK]->pos = glm::vec3(0.0,0.0,0.0);
         objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);

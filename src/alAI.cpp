@@ -90,14 +90,45 @@ double alAI::updateXVelocity()
 }
 double alAI::updateZVelocity()
 {
-    if (puck->pos.z == -3.0)
-    {
-       return 1;
-    }
-
-    /*
+    
     difficulty = rand () % 5 + 1;
+
     if (puck->pos.z > 0)
+    {
+        if (puck->pos.z > paddle2->pos.z)
+        {
+            switch (difficulty) 
+            {
+		        case 1:
+                case 2:
+		        case 3:
+                case 4:
+                    return 0;
+                    break;
+		        case 5:
+                    return 1;
+		        default:
+			        break;
+            }
+        }
+        else
+        {
+            switch (difficulty) 
+            {
+		        case 1:
+                case 2:
+		        case 3:
+                case 4:
+                    return 0;
+                    break;
+		        case 5:
+                    return -1;
+		        default:
+			        break;
+            }
+        }
+    }
+    else
     {
         switch (difficulty) 
         {
@@ -109,31 +140,12 @@ double alAI::updateZVelocity()
                 break;
 
 		    case 5:
-                return 1;
+                return -1;
 		    default:
 			    break;
         }
-    }
-    else
-    {
-        if (puck->pos.z < 3)
-        {
-            switch (difficulty) 
-            {
-		        case 1:
-                case 2:
-		        case 3:
-                case 4:
-                    return 0;
-                    break;
 
-		        case 5:
-                    return -1;
-		        default:
-			        break;
-            }
-        }
     }
-    */
+    
     return 0;
 }

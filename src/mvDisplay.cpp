@@ -246,10 +246,10 @@ void mvDisplay::display()
 {
         
     //clear the screen
-    glClearColor(0.0, 0.0, 0.2f, 1.0);
+    glClearColor(0.0, 0.3, 1.0f, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    text.printw (0, -1, 0, "P1%iP2%i\0", score_p1, score_p2);
+    text.printw (-0.42, -0.95, 0, "PlayerOne %i - %i PlayerTwo\0", score_p1, score_p2);
 
 	displayObject(puck);
 	displayObject(paddle1);

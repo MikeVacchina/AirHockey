@@ -32,14 +32,14 @@ void mvText::printw (float x, float y, float z, char* format, ...)
  
     //  End using variable argument list
     va_end(args);
- 
+                            
+    glColor3f (0.0f, 0.0f, 0.0f);
     //  Specify the raster position for pixel operations.
     glRasterPos2f (x, y);
  
     //  Draw the characters one by one
     for (i = 0; text[i] != '\0'; i++)
     {
-        glColor3f (1, 1, 0);
         glutBitmapCharacter(font_style, text[i]);
     }
  
