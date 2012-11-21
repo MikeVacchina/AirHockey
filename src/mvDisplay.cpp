@@ -41,7 +41,7 @@ bool mvDisplay::loadObjects()
 	puck.assimpLoadMesh("Puck.obj");
 	puck.setColor(1,0,0);
 	table.assimpLoadMesh("TableTest.obj");
-	table.loadBmpTexture("RinkIceTexture_.bmp");
+	table.loadBmpTexture("RinkIceTexture.bmp");
 	//table.setColor(1,1,0);
 	paddle1.assimpLoadMesh("Paddle1.obj");
 	paddle1.setColor(0,1,0);
@@ -248,6 +248,7 @@ void mvDisplay::display()
     //clear the screen
     glClearColor(0.0, 0.0, 0.2f, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     text.printw (0, -1, 0, "P1%iP2%i\0", score_p1, score_p2);
 
 	displayObject(puck);
