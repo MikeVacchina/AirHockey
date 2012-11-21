@@ -35,6 +35,10 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 {
 	//initialize display size and window name
 	display.initializeDisplay(windowName, windowWidth, windowHeight);
+	
+	const GLubyte *vers = glGetString(GL_VERSION);
+
+	std::cout << "OpenGL Version " << vers << " Detected.\n";
 
 	// Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -48,7 +52,7 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 
 	//set key repeat to be ignored for smooth key presses
 	glutIgnoreKeyRepeat(true);
-	
+		
 	//initialize callbacks
 	initializeCallbacks();
 
@@ -65,8 +69,10 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 	objs.push_back(display.getPaddle2Reference());
 	objs.push_back(display.getTableReference());
 
+	//set object references in physics
 	physics.setObjs(objs);
 	
+	//set object references in collision
 	collision.setPuck(display.getPuckReference());
 	collision.setPaddle1(display.getPaddle1Reference());
 	collision.setPaddle2(display.getPaddle2Reference());
@@ -74,7 +80,6 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 
     aiInput.setPuck(display.getPuckReference());
 	aiInput.setPaddle2(display.getPaddle2Reference());
-	//collision.bouncyness = 1.0;
 
 	//initialize resources
 	if(!display.initializeDisplayResources())
@@ -178,15 +183,15 @@ void framework_AirHockey::motionFunc(int x, int y)
 }
 
 void framework_AirHockey::idleFunc()
-{
-	//update object velocity from input
-	
+{	
 	glm::mat4 modelOffset;
 
 	double xVelocity=0.0, zVelocity=0.0;
 	double deltaThedaTime=0.0;
 	double deltaPhiTime=0.0;
 	double keyRotationRate = 30.0;
+
+	//Update camera position from input
 
 	deltaThedaTime -= userInput.timeKeyDown('l');
 	deltaThedaTime += userInput.timeKeyDown('j');
@@ -196,6 +201,8 @@ void framework_AirHockey::idleFunc()
 	
 	phi = phi + deltaPhiTime * keyRotationRate;
 	theda = theda + deltaThedaTime * keyRotationRate;
+
+	//constrain max and min positions
 	if(phi < 0)
 		phi = 0.0;
 	if(phi > 85.0)
@@ -214,6 +221,8 @@ void framework_AirHockey::idleFunc()
 	camPos = rotationPhi*rotationTheda*camPos;
 
 	display.setCamPos(glm::vec3(camPos.x,camPos.y,camPos.z));
+
+	//update object velocity from input
 
 	//get time of each key down as there effect on paddle1's position
 	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_RIGHT);
@@ -274,6 +283,7 @@ void framework_AirHockey::idleFunc()
 	//resolve any possible collisions that might occur
 	int code = collision.resolveCollisions();
 	
+	//handle goals
 	if(code == GOAL1)
     {
         display.addScore(1);
@@ -383,9 +393,10 @@ void framework_AirHockey::subMenuFunc(int option)
         display.toggleLightTwo();
         break;
     case INCREASE_PADDLE_SENSITIVITY:
-		//TODO
+		paddle_sensitivity*=1.5;
         break;
     case DECREASE_PADDLE_SENSITIVITY:
+		paddle_sensitivity/=1.5;
         break;
 	}
 }
