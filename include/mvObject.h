@@ -16,6 +16,7 @@
 #include "mvMesh.h"
 
 #include "assimpObjLoader.h"
+#include "mvText.h"
 
 //simple object class that all other objects should inherit from
 //NOTE: probably will experience problems if mesh is changed after loading it into buffer for glut
@@ -38,6 +39,8 @@ public:
 
 	//assimp loadMesh function
 	virtual void assimpLoadMesh(const char *filename);
+
+	virtual bool loadBmpTexture(const char *filename);
 
 	//basic getMesh function (returns a copy)
 	virtual mvMesh getMesh();

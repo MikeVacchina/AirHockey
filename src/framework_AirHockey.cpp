@@ -16,6 +16,8 @@ extern void startGlut()
 framework_AirHockey::framework_AirHockey()
 {
 	//set default values
+	theda=0.0;
+	phi=50.0;
 }
 
 framework_AirHockey* framework_AirHockey::instance()
@@ -151,7 +153,37 @@ void framework_AirHockey::idleFunc()
 
 	double xVelocity=0.0, zVelocity=0.0;
 	double modifier = 150.0;
+	double deltaThedaTime=0.0;
+	double deltaPhiTime=0.0;
+	double keyRotationRate = 30.0;
+
+	deltaThedaTime -= userInput.timeKeyDown('l');
+	deltaThedaTime += userInput.timeKeyDown('j');
+
+	deltaPhiTime -= userInput.timeKeyDown('k');
+	deltaPhiTime += userInput.timeKeyDown('i');
 	
+	phi = phi + deltaPhiTime * keyRotationRate;
+	theda = theda + deltaThedaTime * keyRotationRate;
+	if(phi < 0)
+		phi = 0.0;
+	if(phi > 85.0)
+		phi = 85.0;
+	
+	glm::mat4 rotationTheda = glm::rotate(glm::mat4(1.0f), (float)theda, glm::vec3(0.0,1.0,0.0));
+
+	glm::vec4 phiAxis = glm::vec4(1.0,0.0,0.0,0.0);
+
+	phiAxis = rotationTheda * phiAxis;
+	
+	glm::mat4 rotationPhi = glm::rotate(glm::mat4(1.0f), (float)phi, glm::vec3(phiAxis.x, phiAxis.y, phiAxis.z));
+
+	glm::vec4 camPos = glm::vec4(0.0,0.0,-30.0,0.0);
+
+	camPos = rotationPhi*rotationTheda*camPos;
+
+	display.setCamPos(glm::vec3(camPos.x,camPos.y,camPos.z));
+
 	//get time of each key down as there effect on paddle1's position
 	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_RIGHT);
 	xVelocity += userInput.timeSpecialDown(GLUT_KEY_LEFT);

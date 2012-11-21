@@ -1,12 +1,9 @@
 Get textures to work (add uv to vbo geometry?)
 
-Collision needs to determine collisions with goals
-
-menus 
-	announce goals, options, ect.
-	
-needed to rotate camera (might want to change how controls work with moved camera)
-	I'm thinking jkli can control it and/or right mouse down with movement
-
 BUG:
 	There is a bug that they puck can move fast enought that it will pass through walls/goal without detection
+	
+	puck gets stuck in corners 
+	
+	
+ME TODO

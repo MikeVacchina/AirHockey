@@ -88,6 +88,7 @@ private:
 	std::vector<mvObject*> objs;
 	
 	//user control variables
+	double theda, phi;
 	
 	//singleton instance
 	static framework_AirHockey *__framework_AirHockey__;

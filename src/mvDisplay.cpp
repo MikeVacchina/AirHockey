@@ -37,8 +37,9 @@ bool mvDisplay::loadObjects()
 {
 	puck.assimpLoadMesh("Puck.obj");
 	puck.setColor(1,0,0);
-	table.assimpLoadMesh("AirHockeyTable.obj");
-	table.setColor(1,1,0);
+	table.assimpLoadMesh("TableTest.obj");
+	table.loadBmpTexture("RinkIceTexture_.bmp");
+	//table.setColor(1,1,0);
 	paddle1.assimpLoadMesh("Paddle1.obj");
 	paddle1.setColor(0,1,0);
 	paddle1.fixMesh(PADDLE1);
@@ -223,7 +224,7 @@ bool mvDisplay::initializeDisplayResources()
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 20.0, -15.0), //Eye Position - old eye position: glm::vec3(0.0, 8.0, -16.0)
+    view = glm::lookAt( glm::vec3(0.0, sin(50.0)*30, cos(50.0)*-30.0), //Eye Position - old eye position: glm::vec3(0.0, 8.0, -16.0)
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -235,8 +236,6 @@ bool mvDisplay::initializeDisplayResources()
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-	
-    glUniform1i(loc_texSampler, 1);
     return true;
 }
 
@@ -302,6 +301,13 @@ void mvDisplay::toggleLightTwo()
 		lightTwo.w=1.0;
 }
 
+void mvDisplay::setCamPos(glm::vec3 camPos)
+{
+	view = glm::lookAt(camPos,						//Eye Position
+                        glm::vec3(0.0, 0.0, 0.0),	//Focus point
+                        glm::vec3(0.0, 1.0, 0.0));	//Positive Y is up
+}
+
 void mvDisplay::objectBufferInit(mvObject &object)
 {
 	//set object buffers
@@ -318,6 +324,9 @@ void mvDisplay::displayObject(mvObject &object)
     //enable the shader program
     glUseProgram(program);
 
+	if(object.hasTexture())
+		object.bind();
+
     //upload the matrix to the shader
     glUniformMatrix4fv(loc_ModelView, 1, GL_FALSE, glm::value_ptr(mv));
     glUniformMatrix4fv(loc_Projection, 1, GL_FALSE, glm::value_ptr(projection));
@@ -329,6 +338,8 @@ void mvDisplay::displayObject(mvObject &object)
 	glUniform4fv(loc_SP,1,glm::value_ptr(SP));
 
 	glUniform1f(loc_shininess,shininess);
+	
+    glUniform1i(loc_texSampler, 0);
 
     //set up the Vertex Buffer Object so it can be drawn
     glEnableVertexAttribArray(loc_position);
@@ -364,9 +375,6 @@ void mvDisplay::displayObject(mvObject &object)
                            GL_FALSE,
                            sizeof(mvVertex),
                            (void*)offsetof(mvVertex,uv));
-
-	if(object.hasTexture())
-		object.bind();
 
 	glDrawArrays(GL_TRIANGLES, 0, object.vertexCount);//mode, starting index, count
 

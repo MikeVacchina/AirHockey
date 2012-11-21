@@ -38,7 +38,7 @@ void mvText::printw (float x, float y, float z, char* format, ...)
  
     //  Draw the characters one by one
     for (i = 0; text[i] != '\0'; i++)
-    glutBitmapCharacter(font_style, text[i]);
+		glutBitmapCharacter(font_style, text[i]);
  
     //  Free the allocated memory for the string
     free(text);

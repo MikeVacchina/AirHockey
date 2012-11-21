@@ -54,6 +54,8 @@ public:
 	void toggleLightOne();
 	void toggleLightTwo();
 
+	void setCamPos(glm::vec3 camPos);
+
 private:
 	//initialize the object for gl and glut
 	void objectBufferInit(mvObject &object);
