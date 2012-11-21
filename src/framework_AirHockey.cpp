@@ -16,6 +16,8 @@ extern void startGlut()
 framework_AirHockey::framework_AirHockey()
 {
 	//set default values
+    ai_enabled = false;
+    paddle_sensitivity = 200*25;
 }
 
 framework_AirHockey* framework_AirHockey::instance()
@@ -47,7 +49,10 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 	//initialize callbacks
 	initializeCallbacks();
 
-	//load objects for game
+    //create menus
+	createMenus();
+	
+    //load objects for game
 	if(!display.loadObjects())
 		return false;
 	
@@ -64,6 +69,8 @@ bool framework_AirHockey::initialize(std::string windowName, int windowWidth, in
 	collision.setPaddle2(display.getPaddle2Reference());
 	collision.setTable(display.getTableReference());
 
+    aiInput.setPuck(display.getPuckReference());
+	aiInput.setPaddle2(display.getPaddle2Reference());
 	//collision.bouncyness = 1.0;
 
 	//initialize resources
@@ -88,6 +95,30 @@ void framework_AirHockey::initializeCallbacks()
 	glutMouseFunc(mouseWrapperFunc);
 	glutMotionFunc(motionWrapperFunc);
 	glutIdleFunc(idleWrapperFunc);
+}
+
+void framework_AirHockey::createMenus()
+{
+	//create settings menu
+	settingsMenu = glutCreateMenu(subMenuWrapperFunc);
+	
+	//set settings menu options
+	glutAddMenuEntry("Reset Paddles and Puck", RESET);
+	glutAddMenuEntry("Toggle AI", TOGGLE_AI);
+    glutAddMenuEntry("Toggle Light 1", TOGGLE_LIGHT_1);
+	glutAddMenuEntry("Toggle Light 2", TOGGLE_LIGHT_2);
+   	glutAddMenuEntry("Increase Paddle Sensitivity", INCREASE_PADDLE_SENSITIVITY);
+    glutAddMenuEntry("Decrease Paddle Sensitivity", DECREASE_PADDLE_SENSITIVITY);
+	//create main menu
+	menu = glutCreateMenu(menuWrapperFunc);
+	
+	//set main menu options
+    glutAddMenuEntry("Restart", RESTART);
+	glutAddSubMenu("Settings", settingsMenu);
+	glutAddMenuEntry("Quit", QUIT);
+
+	//attack main menu to right mouse button
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
 void framework_AirHockey::displayFunc()
@@ -150,7 +181,6 @@ void framework_AirHockey::idleFunc()
 	glm::mat4 modelOffset;
 
 	double xVelocity=0.0, zVelocity=0.0;
-	double modifier = 200.0;
 	
 	//get time of each key down as there effect on paddle1's position
 	xVelocity -= userInput.timeSpecialDown(GLUT_KEY_RIGHT);
@@ -158,24 +188,35 @@ void framework_AirHockey::idleFunc()
 
 	zVelocity -= userInput.timeSpecialDown(GLUT_KEY_DOWN);
 	zVelocity += userInput.timeSpecialDown(GLUT_KEY_UP);
-	
-	xVelocity *= modifier;
-	zVelocity *= modifier;
+
+	xVelocity *= paddle_sensitivity;
+	zVelocity *= paddle_sensitivity;
 
 	objs[PADDLE1]->vel = objs[PADDLE1]->vel+glm::vec3(xVelocity, 0.0, zVelocity);
 	
 	xVelocity=0.0;
 	zVelocity=0.0;
 
-	//get time of each key down as there effect on paddle2's position
-	xVelocity -= userInput.timeKeyDown('d');
-	xVelocity += userInput.timeKeyDown('a');
+    if (ai_enabled)
+    {
+        xVelocity += aiInput.updateXVelocity();
+	    //zVelocity += aiInput.updateZVelocity();
 
-	zVelocity -= userInput.timeKeyDown('s');
-	zVelocity += userInput.timeKeyDown('w');
+	    xVelocity *= paddle_sensitivity;
+	    //zVelocity *= paddle_sensitivity;
+    }
+    else
+    {
+        //get time of each key down as there effect on paddle2's position
+	    xVelocity -= userInput.timeKeyDown('d');
+	    xVelocity += userInput.timeKeyDown('a');
+
+	    zVelocity -= userInput.timeKeyDown('s');
+	    zVelocity += userInput.timeKeyDown('w');
 	
-	xVelocity *= modifier;
-	zVelocity *= modifier;
+	    xVelocity *= paddle_sensitivity;
+	    zVelocity *= paddle_sensitivity;
+    }
 	
 	objs[PADDLE2]->vel = objs[PADDLE2]->vel+glm::vec3(xVelocity, 0.0, zVelocity);
 	
@@ -198,8 +239,49 @@ void framework_AirHockey::idleFunc()
 	physics.update(stopwatch.resetTime());
 	
 	//resolve any possible collisions that might occur
-	collision.resolveCollisions();
+	int code = collision.resolveCollisions();
 	
+	if(code == GOAL1)
+    {
+        display.addScore(1);
+		std::cout << "Goal Scored 1\n";
+        objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PUCK]->pos = glm::vec3(0.0,0.0,3.0);
+        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
+        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
+    }
+	if(code == GOAL2)
+	{
+        display.addScore(2);
+        std::cout << "Goal Scored 2\n";
+        objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PUCK]->pos = glm::vec3(0.0,0.0,-3.0);
+        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
+        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
+    }
+    if (display.checkForWinner ())
+    {
+        if (display.checkForWinner () == 1)
+        {
+            objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+            objs[PUCK]->pos = glm::vec3(0.0,0.0,3.0);
+        }
+        else
+        {
+            objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+            objs[PUCK]->pos = glm::vec3(0.0,0.0,-3.0);
+        }
+        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
+        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
+        display.resetScore();
+    }
+
 	float angle = 90.0;
 	glm::mat4 r = glm::rotate(glm::mat4(1.0f),angle,glm::vec3(1.0f,0.0f,0.0f));
 	
@@ -220,6 +302,58 @@ void framework_AirHockey::idleFunc()
 
 	//call the glut display callback
     glutPostRedisplay();
+}
+
+
+void framework_AirHockey::menuFunc(int option)
+{
+	mvMaze *m;
+	mvSphere *b;
+
+	switch(option)
+	{
+	case RESTART:
+        objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PUCK]->pos = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
+        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
+        display.resetScore();
+		break;
+	case QUIT:
+		//quit
+		exit(0);
+		break;
+	}
+}
+
+void framework_AirHockey::subMenuFunc(int option)
+{
+	switch(option)
+	{
+	case RESET:
+        objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PUCK]->pos = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
+        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
+		break;
+    case TOGGLE_AI:
+        ai_enabled = ai_enabled?false:true;
+        break;
+    case TOGGLE_LIGHT_1:
+        display.toggleLightOne();
+        break;
+    case TOGGLE_LIGHT_2:
+        display.toggleLightTwo();
+        break;
+    case INCREASE_PADDLE_SENSITIVITY:
+        break;
+    case DECREASE_PADDLE_SENSITIVITY:
+        break;
+	}
 }
 
 //glut callback wrapper functions simply call corresponding functions in framework as glut is a c api
@@ -266,4 +400,14 @@ void motionWrapperFunc(int x, int y)
 void idleWrapperFunc()
 {
 	framework_AirHockey::instance()->idleFunc();
+}
+
+void menuWrapperFunc(int option)
+{
+	framework_AirHockey::instance()->menuFunc(option);
+}
+
+void subMenuWrapperFunc(int option)
+{
+	framework_AirHockey::instance()->subMenuFunc(option);
 }

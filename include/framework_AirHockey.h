@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <gl/glew.h> // glew must be included before the main gl libs
+#include <stdlib.h>
 #include <gl/glut.h> // doing otherwise causes compiler shouting
 
 #include <iostream>
@@ -28,6 +29,7 @@
 #include "mvObject.h"
 #include "mvSphere.h"
 #include "mvMaze.h"
+#include "alAI.h"
 
 //M_PI does not appear to be defined when I build the project in visual studios
 #define M_PI        3.14159265358979323846264338327950288   /* pi */
@@ -54,6 +56,8 @@ private:
 
 	void initializeCallbacks();
 
+    void createMenus();
+
 	//framework function callbacks
 	void displayFunc();
 	void reshapeFunc(int newWidth, int newHeight);
@@ -78,11 +82,24 @@ private:
 	//input handler
 	mvInput userInput;
 
+	//ai handler
+	alAI aiInput;
+
 	//physics handler
 	mvPhysics physics;
 
 	//collision handler
 	mvCollision collision;
+
+   	//menu ids
+	int menu;
+	int settingsMenu;
+
+    // ai enable variable
+    bool ai_enabled;
+
+    // paddle sensitivity
+    float paddle_sensitivity;
 
 	//keep a reference to objects in framework
 	std::vector<mvObject*> objs;
@@ -102,6 +119,8 @@ private:
 	friend void mouseWrapperFunc(int button, int state, int x, int y);
 	friend void motionWrapperFunc(int x, int y);
 	friend void idleWrapperFunc();
+	friend void menuWrapperFunc(int option);
+	friend void subMenuWrapperFunc(int option);
 };
 
 //callbacks for glut which call framework funcs (wrappers)
@@ -114,5 +133,7 @@ extern void specialUpWrapperFunc(int key, int x, int y);
 extern void mouseWrapperFunc(int button, int state, int x, int y);
 extern void motionWrapperFunc(int x, int y);
 extern void idleWrapperFunc();
+extern void menuWrapperFunc(int option);
+extern void subMenuWrapperFunc(int option);
 
 #endif //FRAMEWORK_AIRHOCKEY
