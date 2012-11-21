@@ -106,7 +106,6 @@ void framework_AirHockey::createMenus()
 	settingsMenu = glutCreateMenu(subMenuWrapperFunc);
 	
 	//set settings menu options
-	glutAddMenuEntry("Reset Paddles and Puck", RESET);
 	glutAddMenuEntry("Toggle AI", TOGGLE_AI);
     glutAddMenuEntry("Toggle Light 1", TOGGLE_LIGHT_1);
 	glutAddMenuEntry("Toggle Light 2", TOGGLE_LIGHT_2);
@@ -117,6 +116,7 @@ void framework_AirHockey::createMenus()
 	
 	//set main menu options
     glutAddMenuEntry("Restart", RESTART);
+	glutAddMenuEntry("Reset Paddles and Puck", RESET);
 	glutAddSubMenu("Settings", settingsMenu);
 	glutAddMenuEntry("Quit", QUIT);
 
@@ -354,6 +354,14 @@ void framework_AirHockey::menuFunc(int option)
         objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
         display.resetScore();
 		break;
+	case RESET:
+        objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PUCK]->pos = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
+        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
+        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
+		break;
 	case QUIT:
 		//quit
 		exit(0);
@@ -365,14 +373,6 @@ void framework_AirHockey::subMenuFunc(int option)
 {
 	switch(option)
 	{
-	case RESET:
-        objs[PUCK]->vel = glm::vec3(0.0,0.0,0.0);
-        objs[PUCK]->pos = glm::vec3(0.0,0.0,0.0);
-        objs[PADDLE1]->vel = glm::vec3(0.0,0.0,0.0);
-        objs[PADDLE1]->pos = glm::vec3(0.0,0.0,-5.5);
-        objs[PADDLE2]->vel = glm::vec3(0.0,0.0,0.0);
-        objs[PADDLE2]->pos = glm::vec3(0.0,0.0,5.5);
-		break;
     case TOGGLE_AI:
         ai_enabled = ai_enabled?false:true;
         break;
@@ -383,6 +383,7 @@ void framework_AirHockey::subMenuFunc(int option)
         display.toggleLightTwo();
         break;
     case INCREASE_PADDLE_SENSITIVITY:
+		//TODO
         break;
     case DECREASE_PADDLE_SENSITIVITY:
         break;
